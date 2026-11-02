@@ -46,6 +46,17 @@ function hideLoading() {
     }
 }
 
+// На телефоне не фокусируем поля автоматически: клавиатура сразу
+// заслоняет содержимое карточки/формы. Пользователь нажмёт на поле сам.
+function isMobileScreen() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function focusFieldLater(selector, root) {
+    if (isMobileScreen()) return;
+    setTimeout(() => root.querySelector(selector)?.focus(), 100);
+}
+
 let currentUser = null;
 let currentPage = 'home'; // home, shopping, menu, recipes, products
 
@@ -57,19 +68,19 @@ const CONVERSIONS = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
+    const listToken = new URLSearchParams(location.search).get('list');
+    if (listToken) {
+        openSharedList(listToken);
+    } else {
+        checkAuth();
+    }
 });
 
 // Проверка авторизации
 async function checkAuth() {
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-        currentUser = user;
-        showMainApp();
-    } else {
-        showLoginForm();
-    }
+    currentUser = user || null;
+    showMainApp();
 }
 
 function translateAuthError(error) {
@@ -92,30 +103,41 @@ function translateAuthError(error) {
     return error.message;
 }
 
-// Показать форму входа
-function showLoginForm() {
-    document.getElementById('app').innerHTML = `
-        <div class="login-container">
-            <wa-card style="max-width: 400px; margin: 3rem auto;">
-                <h1 slot="header">Авторизация</h1>
-                <div id="error-message" class="error-message" style="display: none;"></div>
-                <p class="hint-text">
-                    Если вы на сайте в первый раз, введите данные для авторизации и нажмите кнопку "Зарегистрироваться"
-                </p>
-                <input type="email" id="email" placeholder="Email" class="input-field">
-                <input type="password" id="password" placeholder="Пароль" class="input-field">
-                
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; margin-top: 0rem;">
-                    <wa-button id="register-btn" variant="text">Зарегистрироваться</wa-button>    
-                    <wa-button id="login-btn" variant="primary">Войти</wa-button> 
-                </div>
-            </wa-card>
-        </div>
-    `;
-    
-    document.getElementById('login-btn').onclick = () => handleLogin();
-    document.getElementById('register-btn').onclick = () => handleRegister();
+// Показать форму входа (модальное окно)
+function showLoginModal(message = '') {
+    const { overlay } = showModal({
+        title: 'Авторизация',
+        body: `
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            ${message ? `<p class="hint-text">${escapeHtml(message)}</p>` : ''}
+            <p class="hint-text">
+                Если вы на сайте в первый раз, введите данные для авторизации и нажмите кнопку "Зарегистрироваться"
+            </p>
+            <input type="email" id="email" placeholder="Email" class="input-field">
+            <input type="password" id="password" placeholder="Пароль" class="input-field">
+        `,
+        footer: `
+            <wa-button id="register-btn" variant="text">Зарегистрироваться</wa-button>
+            <wa-button id="login-btn" variant="primary">Войти</wa-button>
+        `
+    });
+
+    overlay.querySelector('#login-btn').onclick = () => handleLogin(overlay);
+    overlay.querySelector('#register-btn').onclick = () => handleRegister();
+    focusFieldLater('#email', overlay);
 }
+
+// Выполнить действие после авторизации (или показать форму входа)
+function requireAuth(action, message = 'Чтобы выполнить это действие, войдите в аккаунт.') {
+    if (currentUser) {
+        action();
+        return;
+    }
+    pendingAuthAction = action;
+    showLoginModal(message);
+}
+
+let pendingAuthAction = null;
 
 function showError(message) { // вспомогательная функция для показа/скрытия ошибок
     const errorDiv = document.getElementById('error-message');
@@ -181,7 +203,7 @@ async function handleRegister() {
     }
 }
 
-async function handleLogin() {
+async function handleLogin(overlay) {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
@@ -211,7 +233,15 @@ async function handleLogin() {
 
         currentUser = (await supabase.auth.getUser()).data.user;
 
+        if (overlay) overlay.remove();
+
         showMainApp();
+
+        if (pendingAuthAction) {
+            const action = pendingAuthAction;
+            pendingAuthAction = null;
+            action();
+        }
 
     } catch (err) {
         console.error(err);
@@ -228,7 +258,7 @@ function showMainApp() {
     
     // Загружаем последнюю открытую страницу или домашнюю
     const savedPage = localStorage.getItem('currentPage');
-    if (savedPage && ['home', 'shopping', 'menu', 'recipes', 'products'].includes(savedPage)) {
+    if (savedPage && ['home', 'shopping', 'menu', 'recipes', 'products', 'lists'].includes(savedPage)) {
         loadPage(savedPage);
     } else {
         loadPage('home');
@@ -241,7 +271,8 @@ function updateActiveNav() {
         shopping: 'nav-shopping',
         menu: 'nav-menu',
         recipes: 'nav-recipes',
-        products: 'nav-products'
+        products: 'nav-products',
+        lists: 'nav-lists'
     };
     for (const [page, id] of Object.entries(map)) {
         const btn = document.getElementById(id);
@@ -258,6 +289,7 @@ function updateActiveNav() {
 
 // Загрузка страницы по имени
 function loadPage(page) {
+    if (typeof stopListRealtime === 'function') stopListRealtime();
     currentPage = page;
     localStorage.setItem('currentPage', page);
     updateActiveNav();
@@ -278,6 +310,9 @@ function loadPage(page) {
         case 'products':
             loadProducts();
             break;
+        case 'lists':
+            loadLists();
+            break;
         default:
             loadHome();
     }
@@ -288,6 +323,7 @@ function renderNavigation() {
     document.getElementById('app').innerHTML = `
         <div class="app-header">
             <div class="profile-container">
+                ${currentUser ? `
                 <button id="profile-btn" class="profile-btn">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="white"/>
@@ -299,6 +335,9 @@ function renderNavigation() {
                     <button id="settings-btn" class="dropdown-item">Настройки</button>
                     <button id="logout-btn" class="dropdown-item logout">Выход</button>
                 </div>
+                ` : `
+                <wa-button id="login-nav-btn" variant="primary">Войти</wa-button>
+                `}
             </div>
             <button id="burger-btn" class="burger-btn" aria-label="Меню">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -311,6 +350,7 @@ function renderNavigation() {
                 <wa-button id="nav-menu" variant="text">Меню</wa-button>
                 <wa-button id="nav-recipes" variant="text">Рецепты</wa-button>
                 <wa-button id="nav-products" variant="text">Продукты</wa-button>
+                <wa-button id="nav-lists" variant="text">Мои списки</wa-button>
             </div>
         </div>
         <div id="content"></div>
@@ -322,6 +362,7 @@ function renderNavigation() {
     document.getElementById('nav-menu').onclick = () => loadPage('menu');
     document.getElementById('nav-recipes').onclick = () => loadPage('recipes');
     document.getElementById('nav-products').onclick = () => loadPage('products');
+    document.getElementById('nav-lists').onclick = () => loadPage('lists');
 
     const burgerBtn = document.getElementById('burger-btn');
     const navButtons = document.querySelector('.nav-buttons');
@@ -342,7 +383,13 @@ function renderNavigation() {
 
     updateActiveNav();
     
-    // Профиль (оставляем как было)
+    // Профиль / вход
+    const loginNavBtn = document.getElementById('login-nav-btn');
+    if (loginNavBtn) {
+        loginNavBtn.onclick = () => showLoginModal();
+        return;
+    }
+
     const profileBtn = document.getElementById('profile-btn');
     const profileDropdown = document.getElementById('profile-dropdown');
     
@@ -381,7 +428,7 @@ async function handleLogout() {
 async function loadHome() {
     const contentDiv = document.getElementById('content');
 
-    const userName = currentUser?.email?.split('@')[0] || 'Пользователь';
+    const userName = currentUser?.email?.split('@')[0] || 'Гость';
 
     contentDiv.innerHTML = `
         <div class="home-container">
@@ -397,6 +444,7 @@ async function loadHome() {
                 </div>
                 <div id="home-shop-list"></div>
                 <div class="home-shop-footer">
+                    <wa-button id="home-make-list-btn">Создать список для отправки</wa-button>
                     <wa-button id="home-shop-link" variant="primary">Перейти к списку</wa-button>
                 </div>
             </div>
@@ -404,6 +452,10 @@ async function loadHome() {
     `;
 
     document.getElementById('home-shop-link').onclick = () => loadPage('shopping');
+    document.getElementById('home-make-list-btn').onclick = () => {
+        const period = getShoppingPeriod();
+        createListFromMenu(period.start, period.end);
+    };
 
     loadHomeRecent();
     loadHomeWeeklyMenu();
@@ -512,20 +564,24 @@ async function loadHomeWeeklyMenu() {
     const todayStr = formatDateISO(new Date());
 
     try {
-        const { data: menuItems, error } = await supabase
-            .from('menu')
-            .select(`
-                id,
-                date,
-                quant,
-                recipe_id,
-                recipes ( id, name, image_url )
-            `)
-            .gte('date', weekDates[0])
-            .lte('date', weekDates[6])
-            .eq('user_id', currentUser.id);
+        let menuItems = [];
+        if (currentUser) {
+            const { data, error } = await supabase
+                .from('menu')
+                .select(`
+                    id,
+                    date,
+                    quant,
+                    recipe_id,
+                    recipes ( id, name, image_url )
+                `)
+                .gte('date', weekDates[0])
+                .lte('date', weekDates[6])
+                .eq('user_id', currentUser.id);
 
-        if (error) throw error;
+            if (error) throw error;
+            menuItems = data || [];
+        }
 
         const menuByDate = {};
         for (const item of (menuItems || [])) {
@@ -581,15 +637,17 @@ async function loadHomeWeeklyMenu() {
             btn.onclick = async (e) => {
                 e.stopPropagation();
                 const dateStr = btn.dataset.date;
-                try {
-                    const { data: recipes } = await supabase
-                        .from('recipes')
-                        .select('id, name, user_id')
-                        .order('name');
-                    showHomeAddMenuItem(dateStr, recipes || [], weekDates);
-                } catch (err) {
-                    console.error(err);
-                }
+                requireAuth(async () => {
+                    try {
+                        const { data: recipes } = await supabase
+                            .from('recipes')
+                            .select('id, name, user_id')
+                            .order('name');
+                        showHomeAddMenuItem(dateStr, recipes || [], weekDates);
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }, 'Чтобы добавлять блюда в меню, войдите в аккаунт.');
             };
         });
 
@@ -724,7 +782,9 @@ function loadHomeShopList() {
             const items = await fetchShoppingData(period.start, period.end);
 
             if (items.length === 0) {
-                container.innerHTML = `<div class="home-empty">Добавьте блюда в меню, чтобы сформировать список покупок.</div>`;
+                container.innerHTML = currentUser
+                    ? `<div class="home-empty">Добавьте блюда в меню, чтобы сформировать список покупок.</div>`
+                    : `<div class="home-empty">Войдите в аккаунт, чтобы планировать меню и формировать список покупок.</div>`;
                 return;
             }
 
@@ -737,6 +797,7 @@ function loadHomeShopList() {
 }
 
 async function loadProducts() {
+    const seq = ++contentSeq;
     const contentDiv = document.getElementById('content');
     
     contentDiv.innerHTML = `
@@ -769,6 +830,7 @@ async function loadProducts() {
         products = result.data || [];
     } catch (err) {
         console.error('Ошибка загрузки продуктов:', err);
+        if (seq !== contentSeq) return;
         const isNetwork = err.message && err.message.includes('Failed to fetch');
         contentDiv.innerHTML = `
             <div style="padding: 2rem; text-align: center; color: #dc2626;">
@@ -785,6 +847,8 @@ async function loadProducts() {
         return;
     }
     
+    if (seq !== contentSeq) return;
+
     // Рендерим таблицу
     contentDiv.innerHTML = `
         <div class="products-container">
@@ -830,7 +894,10 @@ async function loadProducts() {
     // Кнопка добавления
     const addBtn = document.getElementById('add-product-btn');
     if (addBtn) {
-        addBtn.onclick = () => showAddProductForm();
+        addBtn.onclick = () => requireAuth(
+            () => showAddProductForm(),
+            'Чтобы добавлять свои продукты, войдите в аккаунт.'
+        );
     }
     
     // Кнопки удаления
@@ -918,7 +985,7 @@ async function showAddProductForm() {
         () => {}
     );
     
-    setTimeout(() => overlay.querySelector('#product-name')?.focus(), 100);
+    focusFieldLater('#product-name', overlay);
     
     const modalError = overlay.querySelector('#modal-error');
     function showModalError(msg) { modalError.textContent = msg; modalError.style.display = 'block'; }
@@ -1278,12 +1345,18 @@ async function loadUnits() {
         loadProducts();
     };
     
-    document.getElementById('add-unit-btn').onclick = () => showAddUnitForm();
+    document.getElementById('add-unit-btn').onclick = () => requireAuth(
+        () => showAddUnitForm(),
+        'Чтобы добавлять единицы измерения, войдите в аккаунт.'
+    );
     
     document.querySelectorAll('.delete-unit-btn').forEach(btn => {
         btn.onclick = async (e) => {
             e.stopPropagation();
-            await deleteUnit(btn.getAttribute('data-id'));
+            requireAuth(
+                () => deleteUnit(btn.getAttribute('data-id')),
+                'Чтобы удалять единицы измерения, войдите в аккаунт.'
+            );
         };
     });
 }
@@ -1322,7 +1395,7 @@ function showAddUnitForm() {
         body: `
             <div class="form-group">
                 <label for="unit-name">Название единицы</label>
-                <input type="text" id="unit-name" class="input-field" placeholder="Например: кг, г, л, шт" autofocus>
+                <input type="text" id="unit-name" class="input-field" placeholder="Например: кг, г, л, шт">
             </div>
         `,
         footer: `
@@ -1365,10 +1438,11 @@ function showAddUnitForm() {
         }
     };
     
-    setTimeout(() => overlay.querySelector('#unit-name').focus(), 100);
+    focusFieldLater('#unit-name', overlay);
 }
 
 async function loadRecipes() {
+    const seq = ++contentSeq;
     const contentDiv = document.getElementById('content');
 
     contentDiv.innerHTML = `
@@ -1405,6 +1479,7 @@ async function loadRecipes() {
         recipes = result.data || [];
     } catch (err) {
         console.error('Ошибка загрузки рецептов:', err);
+        if (seq !== contentSeq) return;
         const isNetwork = err.message && err.message.includes('Failed to fetch');
         contentDiv.innerHTML = `
             <div style="padding: 2rem; text-align: center; color: #dc2626;">
@@ -1420,6 +1495,8 @@ async function loadRecipes() {
         document.getElementById('retry-recipes-btn').onclick = () => loadRecipes();
         return;
     }
+
+    if (seq !== contentSeq) return;
 
     contentDiv.innerHTML = `
         <div class="recipes-container">
@@ -1468,7 +1545,10 @@ async function loadRecipes() {
         </div>
     `;
 
-    document.getElementById('add-recipe-btn').onclick = () => showAddRecipeForm();
+    document.getElementById('add-recipe-btn').onclick = () => requireAuth(
+        () => showAddRecipeForm(),
+        'Чтобы создавать свои рецепты, войдите в аккаунт.'
+    );
 
     let showOnlyMyRecipes = false;
 
@@ -1558,6 +1638,12 @@ async function showRecipeDetail(recipe, readOnly = false) {
         quant: ri.quant
     }));
 
+    const ingredientLines = existingIngredients.map(ing => {
+        const product = products.find(p => p.id === ing.product_id);
+        return `${escapeHtml(product?.name || '?')} — ${ing.quant} ${escapeHtml(product?.units?.name || '')}`;
+    }).join('<br>');
+    const editableCls = readOnly ? '' : 'detail-field-editable';
+
     const { overlay } = showModal({
         title: escapeHtml(recipe.name),
         maxWidth: '550px',
@@ -1568,51 +1654,39 @@ async function showRecipeDetail(recipe, readOnly = false) {
                     : `<div class="recipe-card-placeholder" style="height:200px;">🍽️</div>`
                 }
             </div>
-            ${readOnly ? `
-                ${existingIngredients.length > 0 ? `
-                    <div class="form-group">
-                        <label>Ингредиенты</label>
-                        <div style="font-size: 0.9rem; color: #555; line-height: 1.6;">
-                            ${existingIngredients.map(ing => {
-                                const product = products.find(p => p.id === ing.product_id);
-                                return `${escapeHtml(product?.name || '?')} — ${ing.quant} ${escapeHtml(product?.units?.name || '')}`;
-                            }).join('<br>')}
-                        </div>
+            <div class="detail-field ${editableCls}" data-field="name">
+                <div class="detail-label">Название рецепта</div>
+                <div class="detail-view" id="dv-name">${escapeHtml(recipe.name)}</div>
+                ${readOnly ? '' : `<input type="text" id="recipe-detail-name" class="input-field detail-edit" value="${escapeHtml(recipe.name)}">`}
+            </div>
+            <div class="detail-field ${editableCls}" data-field="image">
+                <div class="detail-label">Ссылка на фото</div>
+                <div class="detail-view ${recipe.image_url ? '' : 'is-empty'}" id="dv-image">${recipe.image_url ? escapeHtml(recipe.image_url) : 'Не задана'}</div>
+                ${readOnly ? '' : `<input type="text" id="recipe-detail-image-url" class="input-field detail-edit" value="${escapeHtml(recipe.image_url || '')}" placeholder="https://...">`}
+            </div>
+            <div class="detail-field ${editableCls}" data-field="ingredients">
+                <div class="detail-label">Ингредиенты</div>
+                <div class="detail-view ${ingredientLines ? '' : 'is-empty'}" id="dv-ingredients">${ingredientLines || 'Нет ингредиентов'}</div>
+                ${readOnly ? '' : `
+                    <div class="detail-edit">
+                        <div id="recipe-detail-ingredients"></div>
+                        <button type="button" id="add-detail-ingredient-btn" class="add-ingredient-btn">+ Добавить ингредиент</button>
                     </div>
-                ` : ''}
-                ${recipe.instructions ? `
-                    <div class="form-group">
-                        <label>Комментарий</label>
-                        <div style="font-size: 0.9rem; color: #555; line-height: 1.6;">${escapeHtml(recipe.instructions)}</div>
-                    </div>
-                ` : ''}
-                <div style="text-align: center; padding: 0.5rem 0; color: #999; font-size: 0.8rem;">Общий рецепт — просмотр без редактирования</div>
-            ` : `
-                <div class="form-group">
-                    <label for="recipe-detail-name">Название рецепта</label>
-                    <input type="text" id="recipe-detail-name" class="input-field" value="${escapeHtml(recipe.name)}">
-                </div>
-                <div class="form-group">
-                    <label for="recipe-detail-image-url">Ссылка на фото</label>
-                    <input type="text" id="recipe-detail-image-url" class="input-field" value="${escapeHtml(recipe.image_url || '')}" placeholder="https://...">
-                </div>
-                <div class="form-group">
-                    <label>Ингредиенты</label>
-                    <div id="recipe-detail-ingredients"></div>
-                    <button type="button" id="add-detail-ingredient-btn" class="add-ingredient-btn">+ Добавить ингредиент</button>
-                </div>
-                <div class="form-group">
-                    <label for="recipe-detail-instructions">Комментарий</label>
-                    <textarea id="recipe-detail-instructions" class="input-field" rows="3" placeholder="Описание приготовления, советы...">${escapeHtml(recipe.instructions || '')}</textarea>
-                </div>
-            `}
+                `}
+            </div>
+            <div class="detail-field ${editableCls}" data-field="instructions">
+                <div class="detail-label">Комментарий</div>
+                <div class="detail-view ${recipe.instructions ? '' : 'is-empty'}" id="dv-instructions">${recipe.instructions ? escapeHtml(recipe.instructions) : 'Нет комментария'}</div>
+                ${readOnly ? '' : `<textarea id="recipe-detail-instructions" class="input-field detail-edit" rows="4" placeholder="Описание приготовления, советы...">${escapeHtml(recipe.instructions || '')}</textarea>`}
+            </div>
+            <div class="detail-hint">${readOnly ? 'Общий рецепт — просмотр без редактирования' : 'Нажмите на поле, чтобы изменить его'}</div>
         `,
         footer: readOnly ? `
             <wa-button id="cancel-detail-btn" variant="text">Закрыть</wa-button>
         ` : `
             <div id="recipe-detail-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
-            <wa-button id="cancel-detail-btn" variant="text">Отменить изменения</wa-button>
-            <wa-button id="save-detail-btn" variant="primary">Сохранить изменения</wa-button>
+            <wa-button id="cancel-detail-btn" variant="text">Закрыть</wa-button>
+            <wa-button id="save-detail-btn" variant="primary" style="display: none;">Сохранить изменения</wa-button>
         `
     });
 
@@ -1729,9 +1803,30 @@ async function showRecipeDetail(recipe, readOnly = false) {
         }
     };
 
-        setTimeout(() => overlay.querySelector('#recipe-detail-name').focus(), 100);
-    } else {
-        setTimeout(() => overlay.querySelector('#cancel-detail-btn').focus(), 100);
+        const cancelBtn = overlay.querySelector('#cancel-detail-btn');
+        const saveBtn = overlay.querySelector('#save-detail-btn');
+
+        function updateDetailFooter() {
+            const editing = !!overlay.querySelector('.detail-field.editing');
+            saveBtn.style.display = editing ? '' : 'none';
+            cancelBtn.textContent = editing ? 'Отменить изменения' : 'Закрыть';
+        }
+
+        overlay.querySelectorAll('.detail-field-editable').forEach(field => {
+            const view = field.querySelector('.detail-view');
+            if (!view) return;
+            view.onclick = () => {
+                if (field.classList.contains('editing')) return;
+                field.classList.add('editing');
+                updateDetailFooter();
+                if (field.dataset.field === 'ingredients') return;
+                const editor = field.querySelector('.detail-edit');
+                const focusTarget = editor && editor.tagName === 'DIV' ? editor.querySelector('input') : editor;
+                if (focusTarget) focusTarget.focus();
+            };
+        });
+
+        updateDetailFooter();
     }
 }
 
@@ -1762,7 +1857,7 @@ async function showAddRecipeForm() {
         body: `
             <div class="form-group">
                 <label for="recipe-name">Название рецепта</label>
-                <input type="text" id="recipe-name" class="input-field" placeholder="Например: Борщ" autofocus>
+                <input type="text" id="recipe-name" class="input-field" placeholder="Например: Борщ">
             </div>
             <div class="form-group">
                 <label for="recipe-image-url">Ссылка на фото (необязательно)</label>
@@ -1896,7 +1991,7 @@ async function showAddRecipeForm() {
         }
     };
 
-    setTimeout(() => overlay.querySelector('#recipe-name').focus(), 100);
+    focusFieldLater('#recipe-name', overlay);
 }
 
 function getMenuPeriod() {
@@ -1956,6 +2051,7 @@ function generateDates(startStr, endStr) {
 }
 
 async function fetchShoppingData(startStr, endStr) {
+    if (!currentUser) return [];
     const { data: menuItems, error: menuErr } = await supabase
         .from('menu')
         .select('recipe_id, quant')
@@ -2062,22 +2158,24 @@ async function loadMenuCalendar(startStr, endStr) {
 
     try {
         const [menuResult, recipesResult] = await Promise.all([
-            supabase
-                .from('menu')
-                .select(`
-                    id,
-                    date,
-                    recipe_id,
-                    quant,
-                    recipes (
+            currentUser
+                ? supabase
+                    .from('menu')
+                    .select(`
                         id,
-                        name,
-                        image_url
-                    )
-                `)
-                .gte('date', startStr)
-                .lte('date', endStr)
-                .eq('user_id', currentUser.id),
+                        date,
+                        recipe_id,
+                        quant,
+                        recipes (
+                            id,
+                            name,
+                            image_url
+                        )
+                    `)
+                    .gte('date', startStr)
+                    .lte('date', endStr)
+                    .eq('user_id', currentUser.id)
+                : Promise.resolve({ data: [], error: null }),
             supabase
                 .from('recipes')
                 .select('id, name, user_id')
@@ -2153,7 +2251,10 @@ async function loadMenuCalendar(startStr, endStr) {
     calendarDiv.innerHTML = html;
 
     calendarDiv.querySelectorAll('.menu-day-add-btn').forEach(btn => {
-        btn.onclick = () => showAddMenuItemForm(btn.dataset.date, recipes);
+        btn.onclick = () => requireAuth(
+            () => showAddMenuItemForm(btn.dataset.date, recipes),
+            'Чтобы добавлять блюда в меню, войдите в аккаунт.'
+        );
     });
 
     calendarDiv.querySelectorAll('.menu-item-delete').forEach(btn => {
@@ -2338,6 +2439,7 @@ function loadShoppingList() {
         <div class="shopping-container">
             <div class="products-header">
                 <h2>Список покупок</h2>
+                <wa-button id="shop-make-list-btn" variant="primary">Создать список для отправки</wa-button>
             </div>
             <div class="menu-period-bar">
                 <div class="menu-period-dates">
@@ -2351,6 +2453,14 @@ function loadShoppingList() {
             <div id="shop-list"></div>
         </div>
     `;
+
+    document.getElementById('shop-make-list-btn').onclick = () => {
+        const start = document.getElementById('shop-date-start').value;
+        const end = document.getElementById('shop-date-end').value;
+        if (!start || !end) { alert('Укажите даты начала и окончания периода'); return; }
+        if (start > end) { alert('Дата начала должна быть раньше даты окончания'); return; }
+        createListFromMenu(start, end);
+    };
 
     document.getElementById('shop-apply-period').onclick = () => {
         const start = document.getElementById('shop-date-start').value;
@@ -2378,10 +2488,14 @@ async function loadShopItems(startStr, endStr) {
         const items = await fetchShoppingData(startStr, endStr);
 
         if (items.length === 0) {
-            listDiv.innerHTML = `
+            listDiv.innerHTML = currentUser ? `
                 <div style="text-align: center; padding: 3rem; color: #888;">
                     <p>Нет блюд в меню за выбранный период.</p>
                     <p style="font-size: 0.85rem; margin-top: 0.5rem;">Добавьте рецепты в меню, чтобы сформировать список покупок.</p>
+                </div>
+            ` : `
+                <div style="text-align: center; padding: 3rem; color: #888;">
+                    <p>Войдите в аккаунт, чтобы планировать меню и формировать список покупок.</p>
                 </div>
             `;
             return;
@@ -2402,8 +2516,9 @@ async function loadShopItems(startStr, endStr) {
 }
 
 function renderShopList(container, items) {
-    const checkedKey = `shop_checked_${currentUser.id}`;
-    const qtyKey = `shop_qty_${currentUser.id}`;
+    const userKey = currentUser?.id || 'guest';
+    const checkedKey = `shop_checked_${userKey}`;
+    const qtyKey = `shop_qty_${userKey}`;
 
     const savedQty = JSON.parse(localStorage.getItem(qtyKey) || '{}');
     const savedChecked = JSON.parse(localStorage.getItem(checkedKey) || '[]');
@@ -2443,7 +2558,7 @@ function renderShopList(container, items) {
                     <div class="shop-item" data-id="${item.productId}">
                         <label class="shop-label">
                             <input type="checkbox" class="shop-checkbox" data-id="${item.productId}">
-                            <span class="shop-name">${escapeHtml(item.name)}</span>
+                            <span class="shop-name"><span class="shop-name-text">${escapeHtml(item.name)}</span></span>
                         </label>
                         <span class="shop-qty">${item.qty} ${escapeHtml(item.unit)}</span>
                     </div>
@@ -2460,7 +2575,7 @@ function renderShopList(container, items) {
                     <div class="shop-item shop-item-done" data-id="${item.productId}">
                         <label class="shop-label">
                             <input type="checkbox" class="shop-checkbox" data-id="${item.productId}" checked>
-                            <span class="shop-name">${escapeHtml(item.name)}</span>
+                            <span class="shop-name"><span class="shop-name-text">${escapeHtml(item.name)}</span></span>
                         </label>
                         <span class="shop-qty">${item.qty} ${escapeHtml(item.unit)}</span>
                     </div>
@@ -2494,4 +2609,1042 @@ function renderShopList(container, items) {
     }
 
     render();
+}
+
+// =============================================================
+// Совместные списки (рецепты -> продукты)
+// =============================================================
+
+let currentListId = null;
+let currentListChannel = null;
+let listRefreshTimer = null;
+let contentSeq = 0;
+let currentListCanEdit = true;
+
+function generateToken() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+function getShareUrl(token) {
+    const base = location.href.split('?')[0].split('#')[0];
+    return `${base}?list=${token}`;
+}
+
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch {}
+        ta.remove();
+        return ok;
+    }
+}
+
+function stopListRealtime() {
+    if (listRefreshTimer) { clearTimeout(listRefreshTimer); listRefreshTimer = null; }
+    if (currentListChannel) {
+        supabase.removeChannel(currentListChannel);
+        currentListChannel = null;
+    }
+    currentListId = null;
+}
+
+function startListRealtime(listId) {
+    stopListRealtime();
+    currentListId = listId;
+    const onRefresh = () => {
+        clearTimeout(listRefreshTimer);
+        listRefreshTimer = setTimeout(() => refreshListPanels(listId), 300);
+    };
+    currentListChannel = supabase
+        .channel(`list-${listId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'list_items', filter: `list_id=eq.${listId}` }, onRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'list_recipes', filter: `list_id=eq.${listId}` }, onRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_lists', filter: `id=eq.${listId}` }, onRefresh)
+        .subscribe();
+}
+
+// ---------- Страница «Мои списки» ----------
+
+let listsShowArchived = false;
+
+const ICON_LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+const ICON_PENCIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>';
+const ICON_ARCHIVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>';
+const ICON_RESTORE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><rect x="8" y="3" width="8" height="4" rx="1"/></svg>';
+
+async function loadLists() {
+    const seq = ++contentSeq;
+    stopListRealtime();
+    currentPage = 'lists';
+    updateActiveNav();
+
+    const contentDiv = document.getElementById('content');
+
+    if (!currentUser) {
+        contentDiv.innerHTML = `
+            <div class="lists-container">
+                <div class="products-header"><h2>Мои списки</h2></div>
+                <div class="home-empty">
+                    Войдите в аккаунт, чтобы создавать списки, делиться ими и вести общий чек-лист в реальном времени.
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    contentDiv.innerHTML = `
+        <div style="padding: 2rem; text-align: center;">
+            <div class="loading-spinner" style="margin: 2rem auto;"></div>
+            <p>Загрузка списков...</p>
+        </div>
+    `;
+
+    let lists = [];
+    try {
+        const selectCols = 'id, name, owner_id, share_token, is_archived, created_at, list_recipes(count), list_items(count)';
+        const [ownedRes, memberRes] = await Promise.all([
+            supabase.from('shopping_lists').select(selectCols).eq('owner_id', currentUser.id).order('created_at', { ascending: false }),
+            supabase.from('list_members').select(`shopping_lists ( ${selectCols} )`).eq('user_id', currentUser.id)
+        ]);
+        if (ownedRes.error) throw ownedRes.error;
+        if (memberRes.error) throw memberRes.error;
+
+        const byId = new Map();
+        for (const l of (ownedRes.data || [])) byId.set(l.id, { ...l, role: 'owner' });
+        for (const row of (memberRes.data || [])) {
+            const l = row.shopping_lists;
+            if (l && !byId.has(l.id)) byId.set(l.id, { ...l, role: 'member' });
+        }
+        lists = [...byId.values()].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } catch (err) {
+        console.error('Ошибка загрузки списков:', err);
+        contentDiv.innerHTML = `
+            <div class="lists-container">
+                <div class="products-header"><h2>Мои списки</h2></div>
+                <div class="home-empty">Ошибка загрузки: ${escapeHtml(err.message || 'Неизвестная ошибка')}</div>
+            </div>
+        `;
+        return;
+    }
+
+    if (seq !== contentSeq) return;
+
+    const activeLists = lists.filter(l => !l.is_archived);
+    const archivedLists = lists.filter(l => l.is_archived);
+    const visible = listsShowArchived ? archivedLists : activeLists;
+
+    contentDiv.innerHTML = `
+        <div class="lists-container">
+            <div class="products-header">
+                <h2>Мои списки</h2>
+                <wa-button id="create-list-btn" variant="primary">+ Создать список</wa-button>
+            </div>
+            <div class="lists-tabs">
+                <button type="button" class="lists-tab ${listsShowArchived ? '' : 'lists-tab-active'}" id="lists-tab-active">Активные<span class="lists-tab-count">${activeLists.length}</span></button>
+                <button type="button" class="lists-tab ${listsShowArchived ? 'lists-tab-active' : ''}" id="lists-tab-archived">Архив<span class="lists-tab-count">${archivedLists.length}</span></button>
+            </div>
+            ${visible.length === 0 ? (listsShowArchived ? `
+                <div class="home-empty">Архив пуст. Иконка коробки на карточке убирает готовый список сюда — он не мешает, но остаётся доступным и возвращается в один клик.</div>
+            ` : `
+                <div class="home-empty">Пока нет списков. Создайте первый — добавьте рецепты и поделитесь ссылкой!</div>
+            `) : `
+                <div class="lists-grid">
+                    ${visible.map(l => {
+                        const rCount = l.list_recipes?.[0]?.count ?? 0;
+                        const iCount = l.list_items?.[0]?.count ?? 0;
+                        return `
+                            <div class="list-card" data-id="${l.id}">
+                                <div class="list-card-head">
+                                    <div class="list-card-name">${escapeHtml(l.name)}</div>
+                                    <div class="list-card-badges">
+                                        ${l.share_token ? '<span class="list-badge list-badge-shared">Ссылка активна</span>' : ''}
+                                        ${l.role === 'member' ? '<span class="list-badge list-badge-member">Участник</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="list-card-meta">
+                                    <span>${rCount} рецептов · ${iCount} продуктов</span>
+                                    <span class="list-card-date">${new Date(l.created_at).toLocaleDateString('ru-RU')}</span>
+                                </div>
+                                <div class="list-card-actions">
+                                    <wa-button class="list-open-btn" data-id="${l.id}" variant="primary">Открыть</wa-button>
+                                    ${l.role === 'owner' ? `
+                                        <div class="list-card-tools">
+                                            <button type="button" class="icon-btn list-share-btn" data-id="${l.id}" title="${l.share_token ? 'Скопировать ссылку для отправки' : 'Создать ссылку для отправки'}" aria-label="Поделиться">${ICON_LINK}</button>
+                                            <button type="button" class="icon-btn list-rename-btn" data-id="${l.id}" title="Переименовать" aria-label="Переименовать">${ICON_PENCIL}</button>
+                                            <button type="button" class="icon-btn list-archive-btn" data-id="${l.id}" title="${l.is_archived ? 'Вернуть список из архива' : 'Убрать в архив: скроет из активных, можно вернуть'}" aria-label="В архив">${l.is_archived ? ICON_RESTORE : ICON_ARCHIVE}</button>
+                                            <button type="button" class="icon-btn icon-btn-danger list-delete-btn" data-id="${l.id}" title="Удалить список навсегда" aria-label="Удалить">${ICON_TRASH}</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `}
+        </div>
+    `;
+
+    document.getElementById('lists-tab-active').onclick = () => { listsShowArchived = false; loadLists(); };
+    document.getElementById('lists-tab-archived').onclick = () => { listsShowArchived = true; loadLists(); };
+    document.getElementById('create-list-btn').onclick = () => showCreateListForm();
+
+    contentDiv.querySelectorAll('.list-open-btn').forEach(btn => {
+        btn.onclick = () => {
+            const l = lists.find(x => x.id === btn.dataset.id);
+            if (l) loadListDetail(l, { canEdit: true });
+        };
+    });
+
+    contentDiv.querySelectorAll('.list-share-btn').forEach(btn => {
+        btn.onclick = () => {
+            const l = lists.find(x => x.id === btn.dataset.id);
+            if (l) showShareModal(l);
+        };
+    });
+
+    contentDiv.querySelectorAll('.list-rename-btn').forEach(btn => {
+        btn.onclick = () => {
+            const l = lists.find(x => x.id === btn.dataset.id);
+            if (l) showRenameListForm(l);
+        };
+    });
+
+    contentDiv.querySelectorAll('.list-archive-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const l = lists.find(x => x.id === btn.dataset.id);
+            if (!l) return;
+            showLoading('Сохранение...');
+            const { error } = await supabase.from('shopping_lists').update({ is_archived: !l.is_archived }).eq('id', l.id);
+            hideLoading();
+            if (error) { alert('Не удалось изменить статус: ' + error.message); return; }
+            loadLists();
+        };
+    });
+
+    contentDiv.querySelectorAll('.list-delete-btn').forEach(btn => {
+        btn.onclick = async () => {
+            const confirmed = await showConfirm('Удалить список? Все рецепты и продукты списка будут удалены.');
+            if (!confirmed) return;
+            showLoading('Удаление...');
+            const { error } = await supabase.from('shopping_lists').delete().eq('id', btn.dataset.id);
+            hideLoading();
+            if (error) { alert('Не удалось удалить: ' + error.message); return; }
+            loadLists();
+        };
+    });
+}
+
+function showCreateListForm() {
+    const { overlay } = showModal({
+        title: 'Новый список',
+        body: `
+            <div class="form-group">
+                <label for="list-name">Название списка</label>
+                <input type="text" id="list-name" class="input-field" placeholder="Например: Неделя 1, День рождения">
+            </div>
+        `,
+        footer: `
+            <div id="list-form-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
+            <wa-button id="modal-cancel-btn" variant="text">Отмена</wa-button>
+            <wa-button id="save-list-btn" variant="primary">Создать</wa-button>
+        `
+    });
+
+    focusFieldLater('#list-name', overlay);
+
+    overlay.querySelector('#save-list-btn').onclick = async () => {
+        const name = overlay.querySelector('#list-name').value.trim();
+        const errEl = overlay.querySelector('#list-form-error');
+        if (!name) { errEl.textContent = 'Введите название'; errEl.style.display = 'block'; return; }
+
+        showLoading('Создание...');
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            hideLoading();
+            overlay.remove();
+            currentUser = null;
+            pendingAuthAction = () => showCreateListForm();
+            showLoginModal('Сессия истекла — войдите снова, чтобы создать список.');
+            return;
+        }
+        currentUser = session.user;
+
+        const { error } = await supabase
+            .from('shopping_lists')
+            .insert([{ name, owner_id: session.user.id }]);
+        hideLoading();
+        if (error) {
+            errEl.textContent = error.message.includes('row-level security')
+                ? 'Нет прав на создание. Обновите RLS-политики shopping_lists (см. supabase_setup.sql) и войдите заново.'
+                : error.message;
+            errEl.style.display = 'block';
+            return;
+        }
+        overlay.remove();
+        listsShowArchived = false;
+        loadLists();
+    };
+}
+
+function showRenameListForm(list) {
+    const { overlay } = showModal({
+        title: 'Переименовать список',
+        body: `
+            <div class="form-group">
+                <label for="list-name">Название списка</label>
+                <input type="text" id="list-name" class="input-field" value="${escapeHtml(list.name)}">
+            </div>
+        `,
+        footer: `
+            <div id="list-form-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
+            <wa-button id="modal-cancel-btn" variant="text">Отмена</wa-button>
+            <wa-button id="save-list-btn" variant="primary">Сохранить</wa-button>
+        `
+    });
+
+    focusFieldLater('#list-name', overlay);
+
+    overlay.querySelector('#save-list-btn').onclick = async () => {
+        const name = overlay.querySelector('#list-name').value.trim();
+        const errEl = overlay.querySelector('#list-form-error');
+        if (!name) { errEl.textContent = 'Введите название'; errEl.style.display = 'block'; return; }
+
+        showLoading('Сохранение...');
+        const { error } = await supabase.from('shopping_lists').update({ name }).eq('id', list.id);
+        hideLoading();
+        if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+        overlay.remove();
+        loadLists();
+    };
+}
+
+// ---------- Шаринг ----------
+
+function showShareModal(list) {
+    const hasToken = !!list.share_token;
+    const { overlay } = showModal({
+        title: 'Поделиться списком',
+        body: `
+            ${hasToken ? `
+                <p class="hint-text">Все, у кого есть ссылка, могут просматривать список. Для редактирования нужен вход в аккаунт.</p>
+                <div class="share-link-row">
+                    <input type="text" id="share-link-input" class="input-field" readonly value="${escapeHtml(getShareUrl(list.share_token))}">
+                    <wa-button id="copy-share-btn" variant="primary">Скопировать</wa-button>
+                </div>
+            ` : `
+                <p class="hint-text">Ссылка не создана. Создайте её, чтобы отправить список другому человеку.</p>
+            `}
+        `,
+        footer: `
+            ${hasToken ? `
+                <wa-button id="revoke-share-btn" variant="text" style="color: var(--text-danger); margin-right: auto;">Отозвать доступ</wa-button>
+                <wa-button id="regen-share-btn" variant="text">Обновить ссылку</wa-button>
+            ` : `
+                <wa-button id="modal-cancel-btn" variant="text">Закрыть</wa-button>
+                <wa-button id="regen-share-btn" variant="primary">Создать ссылку</wa-button>
+            `}
+        `
+    });
+
+    const regenBtn = overlay.querySelector('#regen-share-btn');
+    if (regenBtn) regenBtn.onclick = async () => {
+        showLoading('Создание ссылки...');
+        const token = generateToken();
+        const { error } = await supabase.from('shopping_lists').update({ share_token: token }).eq('id', list.id);
+        hideLoading();
+        if (error) { alert('Не удалось создать ссылку: ' + error.message); return; }
+        list.share_token = token;
+        overlay.remove();
+        showShareModal(list);
+    };
+
+    const copyBtn = overlay.querySelector('#copy-share-btn');
+    if (copyBtn) copyBtn.onclick = async () => {
+        const ok = await copyText(getShareUrl(list.share_token));
+        copyBtn.textContent = ok ? 'Скопировано!' : 'Не удалось скопировать';
+        setTimeout(() => { copyBtn.textContent = 'Скопировать'; }, 2000);
+    };
+
+    const revokeBtn = overlay.querySelector('#revoke-share-btn');
+    if (revokeBtn) revokeBtn.onclick = async () => {
+        const confirmed = await showConfirm('Отозвать доступ по ссылке? Все, кто откроет старую ссылку, потеряют доступ.');
+        if (!confirmed) return;
+        showLoading('Отзыв доступа...');
+        const { error } = await supabase.from('shopping_lists').update({ share_token: null }).eq('id', list.id);
+        hideLoading();
+        if (error) { alert('Не удалось отозвать доступ: ' + error.message); return; }
+        list.share_token = null;
+        overlay.remove();
+        showShareModal(list);
+    };
+}
+
+// ---------- Детальный вид списка ----------
+
+async function openSharedList(token) {
+    showLoading('Загрузка списка...');
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user || null;
+        renderNavigation();
+
+        let list = null;
+        let canEdit = false;
+
+        if (!currentUser) {
+            // Гостевой доступ по ссылке: анонимная сессия (без формы входа),
+            // затем вступление в список по токену — даёт право редактировать.
+            // Требует включённых Anonymous Sign-ins в настройках Supabase Auth.
+            try {
+                const { error: anonErr } = await supabase.auth.signInAnonymously();
+                if (!anonErr) {
+                    const { data: { user: anonUser } } = await supabase.auth.getUser();
+                    currentUser = anonUser || null;
+                    renderNavigation();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (currentUser) {
+            try {
+                const { data } = await supabase.rpc('join_list_by_token', { p_token: token });
+                if (data && data.length > 0) {
+                    list = data[0];
+                    canEdit = true;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (!list) {
+            try {
+                const { data } = await supabase.rpc('get_shared_list', { p_token: token });
+                if (data && data.length > 0) list = data[0];
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        hideLoading();
+
+        if (!list) {
+            document.getElementById('content').innerHTML = `
+                <div class="lists-container">
+                    <div class="products-header"><h2>Список</h2></div>
+                    <div class="home-empty">Список не найден или ссылка недействительна.</div>
+                </div>
+            `;
+            return;
+        }
+
+        loadListDetail(list, { canEdit, token });
+    } catch (err) {
+        hideLoading();
+        console.error(err);
+        document.getElementById('content').innerHTML = `
+            <div class="lists-container">
+                <div class="products-header"><h2>Список</h2></div>
+                <div class="home-empty">Ошибка загрузки: ${escapeHtml(err.message || 'Неизвестная ошибка')}</div>
+            </div>
+        `;
+    }
+}
+
+async function loadListDetail(list, opts = {}) {
+    const seq = ++contentSeq;
+    stopListRealtime();
+    currentListId = list.id;
+    currentListCanEdit = opts.canEdit ?? !!currentUser;
+    currentPage = 'lists';
+    updateActiveNav();
+
+    const canEdit = currentListCanEdit;
+    const isOwner = currentUser && list.owner_id === currentUser.id;
+    const contentDiv = document.getElementById('content');
+
+    contentDiv.innerHTML = `
+        <div class="lists-container">
+            <div class="list-detail-header">
+                <a href="#" id="back-to-lists" class="list-back-link">← Мои списки</a>
+                <div class="list-detail-title-row">
+                    <h2>${escapeHtml(list.name)}</h2>
+                    <div class="list-card-badges">
+                        ${list.is_archived ? '<span class="list-badge list-badge-archived">Архив</span>' : ''}
+                        ${list.share_token ? '<span class="list-badge list-badge-shared">Ссылка активна</span>' : ''}
+                    </div>
+                </div>
+                <div class="list-detail-actions">
+                    ${isOwner ? `
+                        <wa-button id="detail-share-btn" variant="text">Поделиться</wa-button>
+                        <wa-button id="detail-rename-btn" variant="text">Переименовать</wa-button>
+                    ` : ''}
+                </div>
+            </div>
+            ${(!currentUser || currentUser.is_anonymous) ? `
+                <div class="list-guest-banner">
+                    <span>${currentUser
+                        ? 'Вы редактируете список по ссылке как гость. Войдите, чтобы закрепить доступ за аккаунтом.'
+                        : 'Список открыт по ссылке в режиме просмотра. Войдите, чтобы редактировать его вместе с другими.'}</span>
+                    <wa-button id="guest-login-btn" variant="primary" size="small">Войти</wa-button>
+                </div>
+            ` : ''}
+            <div class="list-mobile-tabs" id="list-mobile-tabs">
+                <button type="button" class="list-mobile-tab list-mobile-tab-active" data-tab="items">Продукты</button>
+                <button type="button" class="list-mobile-tab" data-tab="recipes">Рецепты</button>
+            </div>
+            <div class="list-detail-columns mobile-show-items" id="list-detail-columns">
+                <div class="list-panel list-panel-recipes">
+                    <div class="list-panel-header">
+                        <h3>Рецепты</h3>
+                        ${canEdit ? '<wa-button id="add-list-recipe-btn" variant="primary" size="small">+ Добавить рецепт</wa-button>' : ''}
+                    </div>
+                    <div id="list-recipes-body"></div>
+                </div>
+                <div class="list-panel list-panel-items">
+                    <div class="list-panel-header">
+                        <h3>Продукты</h3>
+                        ${canEdit ? `
+                            <div class="list-panel-actions">
+                                <wa-button id="add-list-item-btn" variant="primary" size="small">+ Продукт</wa-button>
+                                <wa-button id="reset-checked-btn" variant="text" size="small">Сбросить отметки</wa-button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div id="list-items-body"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('back-to-lists').onclick = (e) => {
+        e.preventDefault();
+        loadLists();
+    };
+
+    document.getElementById('list-mobile-tabs').querySelectorAll('.list-mobile-tab').forEach(btn => {
+        btn.onclick = () => {
+            const tab = btn.dataset.tab;
+            document.getElementById('list-mobile-tabs').querySelectorAll('.list-mobile-tab')
+                .forEach(b => b.classList.toggle('list-mobile-tab-active', b === btn));
+            const cols = document.getElementById('list-detail-columns');
+            cols.classList.toggle('mobile-show-items', tab === 'items');
+            cols.classList.toggle('mobile-show-recipes', tab === 'recipes');
+        };
+    });
+
+    const guestBtn = document.getElementById('guest-login-btn');
+    if (guestBtn) guestBtn.onclick = () => {
+        if (currentUser && !currentUser.is_anonymous) {
+            openSharedList(opts.token);
+            return;
+        }
+        pendingAuthAction = () => openSharedList(opts.token);
+        showLoginModal('Войдите, чтобы закрепить доступ к списку за аккаунтом.');
+    };
+
+    const shareBtn = document.getElementById('detail-share-btn');
+    if (shareBtn) shareBtn.onclick = () => showShareModal(list);
+
+    const renameBtn = document.getElementById('detail-rename-btn');
+    if (renameBtn) renameBtn.onclick = () => showRenameListForm(list);
+
+    const addRecipeBtn = document.getElementById('add-list-recipe-btn');
+    if (addRecipeBtn) addRecipeBtn.onclick = () => showAddListRecipeForm(list.id);
+
+    const addItemBtn = document.getElementById('add-list-item-btn');
+    if (addItemBtn) addItemBtn.onclick = () => showAddListItemForm(list.id);
+
+    const resetBtn = document.getElementById('reset-checked-btn');
+    if (resetBtn) resetBtn.onclick = async () => {
+        showLoading('Сохранение...');
+        const { error } = await supabase.from('list_items').update({ is_checked: false }).eq('list_id', list.id).eq('is_checked', true);
+        hideLoading();
+        if (error) { alert('Не удалось сбросить: ' + error.message); return; }
+        refreshListPanels(list.id);
+    };
+
+    await refreshListPanels(list.id, seq);
+    if (seq !== contentSeq) return;
+    startListRealtime(list.id);
+}
+
+async function refreshListPanels(listId, seq = contentSeq) {
+    const [recipesRes, itemsRes] = await Promise.all([
+        supabase
+            .from('list_recipes')
+            .select('id, recipe_id, portions, recipes ( id, name, image_url, user_id, recipe_ingredients ( product_id ) )')
+            .eq('list_id', listId)
+            .order('created_at'),
+        supabase
+            .from('list_items')
+            .select('id, product_id, name, unit, qty, is_checked, source')
+            .eq('list_id', listId)
+            .order('is_checked')
+            .order('name')
+    ]);
+
+    if (seq !== contentSeq || currentListId !== listId) return;
+
+    const recipesBody = document.getElementById('list-recipes-body');
+    const itemsBody = document.getElementById('list-items-body');
+    if (!recipesBody || !itemsBody) return;
+
+    const listRecipes = recipesRes.data || [];
+    const items = itemsRes.data || [];
+    const dis = currentListCanEdit ? '' : 'disabled';
+
+    // продукт -> рецепты, из которых он берётся (для тегов у строк)
+    const productRecipes = new Map();
+    for (const lr of listRecipes) {
+        const recipeName = lr.recipes?.name;
+        if (!recipeName || !lr.recipe_id) continue;
+        for (const ri of (lr.recipes?.recipe_ingredients || [])) {
+            if (!ri.product_id) continue;
+            const pKey = String(ri.product_id);
+            if (!productRecipes.has(pKey)) productRecipes.set(pKey, new Map());
+            productRecipes.get(pKey).set(String(lr.recipe_id), recipeName);
+        }
+    }
+
+    recipesBody.innerHTML = listRecipes.length === 0
+        ? '<div class="home-empty">Нет рецептов. Добавьте рецепты — продукты появятся автоматически.</div>'
+        : listRecipes.map(lr => `
+            <div class="list-recipe-row" data-id="${lr.id}">
+                ${lr.recipes?.image_url
+                    ? `<img class="list-recipe-thumb" src="${escapeHtml(lr.recipes.image_url)}" alt="">`
+                    : '<div class="list-recipe-thumb list-recipe-thumb-placeholder">🍽</div>'
+                }
+                <div class="list-recipe-info">
+                    <div class="list-recipe-name" data-recipe-id="${lr.recipe_id}">${escapeHtml(lr.recipes?.name || 'Рецепт удалён')}</div>
+                    <div class="list-recipe-portions">
+                        <label>Порций:</label>
+                        <input type="number" class="list-portions-input" data-id="${lr.id}" min="1" step="1" value="${lr.portions}" ${dis}>
+                    </div>
+                </div>
+                ${currentListCanEdit ? '<button class="list-recipe-remove" title="Удалить">&times;</button>' : ''}
+            </div>
+        `).join('');
+
+    itemsBody.innerHTML = items.length === 0
+        ? '<div class="home-empty">Список продуктов пуст.</div>'
+        : `<div class="shop-list-card">${items.map(item => {
+            const recipeNames = item.source === 'recipe'
+                ? [...(productRecipes.get(String(item.product_id))?.values() || [])]
+                : [];
+            const tags = recipeNames.length > 0
+                ? recipeNames.map(n => `<span class="list-badge list-badge-recipe">${escapeHtml(n)}</span>`).join(' ')
+                : (item.source === 'recipe' ? '<span class="list-badge list-badge-recipe">из рецепта</span>' : '');
+            return `
+            <div class="shop-item ${item.is_checked ? 'shop-item-done' : ''}" data-id="${item.id}">
+                <label class="shop-label">
+                    <input type="checkbox" class="shop-checkbox list-item-check" data-id="${item.id}" ${item.is_checked ? 'checked' : ''} ${dis}>
+                    <span class="shop-name"><span class="shop-name-text">${escapeHtml(item.name)}</span>${tags ? ' ' + tags : ''}</span>
+                </label>
+                <span class="list-item-qty-wrap">
+                    <input type="number" class="list-item-qty-input" data-id="${item.id}" value="${item.qty}" step="any" min="0" ${dis}>
+                    <span class="shop-qty">${escapeHtml(item.unit)}</span>
+                    ${item.source === 'manual' && currentListCanEdit ? '<button class="list-item-remove" title="Удалить">&times;</button>' : ''}
+                </span>
+            </div>
+        `;
+        }).join('')}</div>`;
+
+    wireListPanelEvents(listId);
+}
+
+function wireListPanelEvents(listId) {
+    const recipesBody = document.getElementById('list-recipes-body');
+    const itemsBody = document.getElementById('list-items-body');
+    if (!recipesBody || !itemsBody) return;
+
+    recipesBody.querySelectorAll('.list-portions-input').forEach(inp => {
+        inp.onchange = async () => {
+            const portions = parseInt(inp.value, 10);
+            if (!portions || portions < 1) { inp.value = 1; return; }
+            showLoading('Сохранение...');
+            const { error } = await supabase.from('list_recipes').update({ portions }).eq('id', inp.dataset.id);
+            if (error) { hideLoading(); alert('Не удалось сохранить: ' + error.message); return; }
+            try {
+                await regenerateListItems(listId);
+            } catch (e) {
+                console.error(e);
+                alert('Не удалось пересчитать продукты: ' + (e.message || e));
+            }
+            hideLoading();
+            refreshListPanels(listId);
+        };
+    });
+
+    recipesBody.querySelectorAll('.list-recipe-remove').forEach(btn => {
+        btn.onclick = async () => {
+            const row = btn.closest('.list-recipe-row');
+            const confirmed = await showConfirm('Удалить рецепт из списка?');
+            if (!confirmed) return;
+            showLoading('Удаление...');
+            const { error } = await supabase.from('list_recipes').delete().eq('id', row.dataset.id);
+            if (error) { hideLoading(); alert('Не удалось удалить: ' + error.message); return; }
+            try {
+                await regenerateListItems(listId);
+            } catch (e) {
+                console.error(e);
+                alert('Не удалось пересчитать продукты: ' + (e.message || e));
+            }
+            hideLoading();
+            refreshListPanels(listId);
+        };
+    });
+
+    recipesBody.querySelectorAll('.list-recipe-name').forEach(el => {
+        el.onclick = async () => {
+            const recipeId = el.dataset.recipeId;
+            if (!recipeId) return;
+            try {
+                showLoading('Загрузка...');
+                const { data: recipe, error } = await supabase
+                    .from('recipes')
+                    .select('id, name, image_url, instructions, user_id, recipe_ingredients (id, quant, product_id)')
+                    .eq('id', recipeId)
+                    .single();
+                hideLoading();
+                if (error) throw error;
+                if (recipe) showRecipeDetail(recipe, recipe.user_id !== currentUser?.id);
+            } catch (err) {
+                hideLoading();
+                console.error(err);
+            }
+        };
+    });
+
+    itemsBody.querySelectorAll('.list-item-check').forEach(cb => {
+        cb.onchange = async () => {
+            const id = cb.dataset.id;
+            const row = cb.closest('.shop-item');
+            if (row) row.classList.toggle('shop-item-done', cb.checked);
+            const { error } = await supabase.from('list_items').update({ is_checked: cb.checked }).eq('id', id);
+            if (error) {
+                if (row) row.classList.toggle('shop-item-done', !cb.checked);
+                cb.checked = !cb.checked;
+                alert('Не удалось сохранить: ' + error.message);
+            }
+        };
+    });
+
+    itemsBody.querySelectorAll('.list-item-qty-input').forEach(inp => {
+        inp.onchange = async () => {
+            const qty = parseFloat(inp.value);
+            if (isNaN(qty) || qty < 0) return;
+            const { error } = await supabase.from('list_items').update({ qty }).eq('id', inp.dataset.id);
+            if (error) alert('Не удалось сохранить: ' + error.message);
+        };
+    });
+
+    itemsBody.querySelectorAll('.list-item-remove').forEach(btn => {
+        btn.onclick = async () => {
+            const row = btn.closest('.shop-item');
+            const confirmed = await showConfirm('Удалить продукт из списка?');
+            if (!confirmed) return;
+            showLoading('Удаление...');
+            const { error } = await supabase.from('list_items').delete().eq('id', row.dataset.id);
+            hideLoading();
+            if (error) { alert('Не удалось удалить: ' + error.message); return; }
+            refreshListPanels(listId);
+        };
+    });
+}
+
+// Пересчёт продуктов из рецептов списка (source='recipe')
+async function regenerateListItems(listId) {
+    const { data: listRecipes, error } = await supabase
+        .from('list_recipes')
+        .select('recipe_id, portions, recipes ( recipe_ingredients ( product_id, quant, products ( name, units ( name ) ) ) )')
+        .eq('list_id', listId);
+    if (error) throw error;
+
+    if ((listRecipes || []).length > 0 && !(listRecipes || []).some(lr => lr.recipes)) {
+        console.error('Рецепты списка недоступны — пересчёт пропущен, чтобы не потерять продукты и отметки.');
+        return;
+    }
+
+    const agg = {};
+    for (const lr of (listRecipes || [])) {
+        const portions = lr.portions || 1;
+        for (const ri of (lr.recipes?.recipe_ingredients || [])) {
+            if (!ri.product_id) continue;
+            const key = String(ri.product_id);
+            const p = ri.products;
+            if (!agg[key]) {
+                agg[key] = { productId: ri.product_id, name: p?.name || 'Продукт', unit: p?.units?.name || '', qty: 0 };
+            }
+            agg[key].qty += Number(ri.quant) * portions;
+        }
+    }
+
+    for (const v of Object.values(agg)) {
+        let unit = v.unit;
+        let qty = Math.round(v.qty * 100) / 100;
+        const conv = CONVERSIONS[(unit || '').toLowerCase().trim()];
+        if (conv && v.qty > 99) {
+            qty = Math.round((v.qty / conv.factor) * 100) / 100;
+            unit = conv.target;
+        }
+        v.qty = qty;
+        v.unit = unit;
+    }
+
+    const { data: existing, error: exErr } = await supabase
+        .from('list_items')
+        .select('id, product_id, qty, unit, name')
+        .eq('list_id', listId)
+        .eq('source', 'recipe');
+    if (exErr) throw exErr;
+
+    // Ключи нормализуем к строкам: Object.entries() всегда даёт строковые ключи,
+    // а product_id из PostgREST может прийти числом — иначе Map их не найдёт,
+    // продукты пересоздадутся и все отметки собьются.
+    const existingByProduct = new Map();
+    for (const i of (existing || [])) {
+        const key = String(i.product_id);
+        if (!existingByProduct.has(key)) existingByProduct.set(key, []);
+        existingByProduct.get(key).push(i);
+    }
+
+    for (const [key, v] of Object.entries(agg)) {
+        const matches = existingByProduct.get(key) || [];
+        const ex = matches.shift();
+        if (ex) {
+            if (Number(ex.qty) !== v.qty || ex.unit !== v.unit || ex.name !== v.name) {
+                const { error: upErr } = await supabase
+                    .from('list_items')
+                    .update({ qty: v.qty, unit: v.unit, name: v.name })
+                    .eq('id', ex.id);
+                if (upErr) throw upErr;
+            }
+        } else {
+            const { error: insErr } = await supabase.from('list_items').insert([{
+                list_id: listId,
+                product_id: v.productId,
+                name: v.name,
+                unit: v.unit,
+                qty: v.qty,
+                is_checked: false,
+                source: 'recipe'
+            }]);
+            if (insErr) throw insErr;
+        }
+        if (matches.length > 0) {
+            const { error: dupErr } = await supabase.from('list_items').delete().in('id', matches.map(m => m.id));
+            if (dupErr) throw dupErr;
+        }
+        existingByProduct.delete(key);
+    }
+
+    const staleIds = [];
+    for (const arr of existingByProduct.values()) staleIds.push(...arr.map(i => i.id));
+    if (staleIds.length > 0) {
+        const { error: delErr } = await supabase.from('list_items').delete().in('id', staleIds);
+        if (delErr) throw delErr;
+    }
+}
+
+// ---------- Список покупок из меню (для отправки по ссылке) ----------
+
+async function createListFromMenu(startStr, endStr) {
+    if (!currentUser) {
+        pendingAuthAction = () => createListFromMenu(startStr, endStr);
+        showLoginModal('Войдите, чтобы создать список из меню.');
+        return;
+    }
+
+    showLoading('Создание списка...');
+
+    try {
+        const { data: menuItems, error: menuErr } = await supabase
+            .from('menu')
+            .select('recipe_id, quant')
+            .gte('date', startStr)
+            .lte('date', endStr)
+            .eq('user_id', currentUser.id);
+        if (menuErr) throw menuErr;
+
+        const portionsByRecipe = new Map();
+        for (const m of (menuItems || [])) {
+            if (!m.recipe_id) continue;
+            const key = String(m.recipe_id);
+            const cur = portionsByRecipe.get(key) || { recipeId: m.recipe_id, portions: 0 };
+            cur.portions += Number(m.quant || 1);
+            portionsByRecipe.set(key, cur);
+        }
+
+        if (portionsByRecipe.size === 0) {
+            hideLoading();
+            alert('В меню за выбранный период нет рецептов. Сначала добавьте рецепты в меню.');
+            return;
+        }
+
+        const name = `Меню на неделю: ${formatDateDisplay(startStr)} — ${formatDateDisplay(endStr)}`;
+
+        const { data: list, error: listErr } = await supabase
+            .from('shopping_lists')
+            .insert([{ name, owner_id: currentUser.id }])
+            .select()
+            .single();
+        if (listErr) throw listErr;
+
+        const rows = [...portionsByRecipe.values()].map(v => ({
+            list_id: list.id,
+            recipe_id: v.recipeId,
+            portions: Math.max(1, Math.round(v.portions))
+        }));
+        const { error: recErr } = await supabase.from('list_recipes').insert(rows);
+        if (recErr) throw recErr;
+
+        try {
+            await regenerateListItems(list.id);
+        } catch (e) {
+            console.error('Не удалось пересчитать продукты списка:', e);
+        }
+
+        hideLoading();
+        await loadListDetail(list, { canEdit: true, token: null });
+        showShareModal(list);
+    } catch (err) {
+        hideLoading();
+        console.error(err);
+        alert('Не удалось создать список: ' + (err.message || err));
+    }
+}
+
+// ---------- Формы добавления в список ----------
+
+function showAddListRecipeForm(listId) {
+    const { overlay } = showModal({
+        title: 'Добавить рецепт в список',
+        body: `
+            <div class="form-group">
+                <label>Рецепт</label>
+                <div id="list-recipe-select-container"></div>
+            </div>
+            <div class="form-group">
+                <label for="list-recipe-portions">Количество порций</label>
+                <input type="number" id="list-recipe-portions" class="input-field" min="1" step="1" value="1">
+            </div>
+        `,
+        footer: `
+            <div id="list-recipe-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
+            <wa-button id="modal-cancel-btn" variant="text">Отмена</wa-button>
+            <wa-button id="save-list-recipe-btn" variant="primary">Добавить</wa-button>
+        `
+    });
+
+    const errEl = overlay.querySelector('#list-recipe-error');
+    let recipeSelect = null;
+
+    (async () => {
+        const { data: recipes, error } = await supabase.from('recipes').select('id, name').order('name');
+        if (error) {
+            errEl.textContent = 'Ошибка загрузки рецептов: ' + error.message;
+            errEl.style.display = 'block';
+            return;
+        }
+        recipeSelect = createCustomSelect(
+            overlay.querySelector('#list-recipe-select-container'),
+            (recipes || []).map(r => ({ id: r.id, name: r.name })),
+            'Выберите рецепт',
+            () => {}
+        );
+    })();
+
+    overlay.querySelector('#save-list-recipe-btn').onclick = async () => {
+        errEl.style.display = 'none';
+        const recipeId = recipeSelect && recipeSelect.getValue();
+        const portions = parseInt(overlay.querySelector('#list-recipe-portions').value, 10);
+
+        if (!recipeId) { errEl.textContent = 'Выберите рецепт'; errEl.style.display = 'block'; return; }
+        if (!portions || portions < 1) { errEl.textContent = 'Укажите количество порций'; errEl.style.display = 'block'; return; }
+
+        showLoading('Добавление...');
+        const { error } = await supabase.from('list_recipes').insert([{ list_id: listId, recipe_id: recipeId, portions }]);
+        if (error) { hideLoading(); errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+        try {
+            await regenerateListItems(listId);
+        } catch (e) {
+            hideLoading();
+            console.error(e);
+            errEl.textContent = 'Рецепт добавлен, но продукты пересчитать не удалось: ' + (e.message || '');
+            errEl.style.display = 'block';
+            return;
+        }
+        hideLoading();
+        overlay.remove();
+        refreshListPanels(listId);
+    };
+}
+
+function showAddListItemForm(listId) {
+    const { overlay } = showModal({
+        title: 'Добавить продукт',
+        body: `
+            <div class="form-group">
+                <label for="item-name">Название продукта</label>
+                <input type="text" id="item-name" class="input-field" placeholder="Например: Хлеб">
+            </div>
+            <div class="form-group">
+                <label for="item-qty">Количество</label>
+                <input type="number" id="item-qty" class="input-field" min="0" step="any" value="1">
+            </div>
+            <div class="form-group">
+                <label for="item-unit">Единица измерения</label>
+                <input type="text" id="item-unit" class="input-field" placeholder="кг, шт, л...">
+            </div>
+        `,
+        footer: `
+            <div id="item-form-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
+            <wa-button id="modal-cancel-btn" variant="text">Отмена</wa-button>
+            <wa-button id="save-item-btn" variant="primary">Добавить</wa-button>
+        `
+    });
+
+    focusFieldLater('#item-name', overlay);
+
+    overlay.querySelector('#save-item-btn').onclick = async () => {
+        const name = overlay.querySelector('#item-name').value.trim();
+        const qty = parseFloat(overlay.querySelector('#item-qty').value);
+        const unit = overlay.querySelector('#item-unit').value.trim();
+        const errEl = overlay.querySelector('#item-form-error');
+
+        if (!name) { errEl.textContent = 'Введите название продукта'; errEl.style.display = 'block'; return; }
+        if (isNaN(qty) || qty < 0) { errEl.textContent = 'Укажите количество'; errEl.style.display = 'block'; return; }
+
+        showLoading('Добавление...');
+        const { error } = await supabase.from('list_items').insert([{
+            list_id: listId,
+            name,
+            unit,
+            qty,
+            is_checked: false,
+            source: 'manual'
+        }]);
+        hideLoading();
+        if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+        overlay.remove();
+        refreshListPanels(listId);
+    };
 }
