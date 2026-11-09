@@ -8,11 +8,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" />
     <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"></script>
 
-    <!-- Подключение шрифта Wix Madefor Display -->
+    <!-- Подключение шрифтов -->
     <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Ваши стили -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" id="theme-style">
+    <script>
+        if (localStorage.getItem('uiStyle') === 'olive') {
+            document.getElementById('theme-style').href = 'style-classic.css';
+        }
+    </script>
 </head>
 <body>
     <div id="app">Загрузка...</div>

@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'Classic Console Neue';
+    src: url('fonts/Classic-Console-Neue-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,19 +13,32 @@
 }
 
 :root {
-    --primary: #6C7A4E;
-    --primary-dark: #4f5e1c;
-    --bg-body: #FBFAF8;
-    --bg-card: #ffffff;
-    --text-primary: #0F0E07;
-    --text-menu: #4C5C13;
-    --text-menu-light: #8F947B;
-    --text-danger: #b91c1c;
-    --border: #e2e8f0;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --radius: 50px;
+    --primary: #e88ba8;
+    --primary-dark: #d2749b;
+    --bg-body: #ffffff;
+    --bg-card: #fffdf8;
+    --bg-soft: #fdf0f4;
+    --text-primary: #6b4a5a;
+    --text-secondary: #8a7864;
+    --text-menu: #7a5468;
+    --text-menu-light: #b08fa0;
+    --text-danger: #c25e6a;
+    --border: #ecc8d8;
+    --outline: #d27ba1;
+    --title-pink: #f2b8c6;
+    --title-mint: #c5e1a5;
+    --title-blue: #bfd8ec;
+    --title-yellow: #f7e6a0;
+    --shadow-sm: 3px 3px 0 rgba(210, 123, 161, 0.25);
+    --shadow-md: 5px 5px 0 rgba(210, 123, 161, 0.3);
+    --radius: 10px;
     --radius-full: 9999px;
+    --win-dots:
+        radial-gradient(circle at 50% 50%, #f7e6a0 0 3.5px, var(--outline) 3.5px 5px, transparent 5px),
+        radial-gradient(circle at 50% 50%, #bfd8ec 0 3.5px, var(--outline) 3.5px 5px, transparent 5px),
+        radial-gradient(circle at 50% 50%, #f2b8c6 0 3.5px, var(--outline) 3.5px 5px, transparent 5px);
+    --win-dots-pos: calc(100% - 14px) 50%, calc(100% - 30px) 50%, calc(100% - 46px) 50%;
+    --win-dots-size: 10px 10px;
 }
 
 /* Все элементы интерфейса */
@@ -27,19 +48,23 @@ select,
 button,
 wa-button,
 .input-field {
-    font-family: 'Wix Madefor Display', sans-serif;
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
 }
 
 /* Убираем жирность у placeholder (подсказок внутри полей) */
 input::placeholder,
 textarea::placeholder {
     font-weight: 400;
-    color: #999;
+    color: #b09a80;
 }
 
-body { /* Тело страницы */
-    font-family: 'Wix Madefor Display', sans-serif;
-    background: var(--bg-body);
+body {
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
+    background-color: var(--bg-body);
+    background-image:
+        linear-gradient(rgba(120, 140, 180, 0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 140, 180, 0.18) 1px, transparent 1px);
+    background-size: 24px 24px;
     overflow-x: hidden;
 }
 
@@ -84,7 +109,7 @@ body { /* Тело страницы */
 }
 
 .burger-btn:hover {
-    background: rgba(108, 122, 78, 0.1);
+    background: rgba(233, 141, 146, 0.15);
 }
 
 .input-field { /* Поля ввода */
@@ -123,7 +148,7 @@ textarea.input-field {
     border: none;
     border-radius: 50px;
     font-size: 1rem;
-    font-family: 'Wix Madefor Display', sans-serif;
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
     color: var(--primary-dark);
     background: var(--bg-card, white);
     cursor: text;
@@ -134,11 +159,11 @@ textarea.input-field {
 
 .custom-select-trigger:focus {
     outline: none;
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.2);
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.25);
 }
 
 .custom-select-trigger::placeholder {
-    color: #999;
+    color: #b09a80;
     font-weight: 400;
 }
 
@@ -175,13 +200,13 @@ textarea.input-field {
     border-radius: 14px;
     cursor: pointer;
     font-size: 0.95rem;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, #5c4033);
     transition: background 0.15s ease;
     white-space: nowrap;
 }
 
 .custom-select-option:hover {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .custom-select-option.selected {
@@ -196,7 +221,7 @@ textarea.input-field {
 
 .custom-select-empty {
     padding: 0.75rem 1rem;
-    color: #999;
+    color: #b09a80;
     font-size: 0.9rem;
     text-align: center;
 }
@@ -207,7 +232,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-background-clip: text;
-    -webkit-text-fill-color: var(--text-primary, #1f2937);
+    -webkit-text-fill-color: var(--text-primary, #5c4033);
     transition: background-color 5000s ease-in-out 0s;
     box-shadow: inset 0 0 0px 1000px white;
 }
@@ -223,12 +248,12 @@ wa-button:focus {
 /* Добавляем свою красивую рамку для полей ввода */
 input:focus,
 textarea:focus {
-    border-color: var(--primary, #2d6a4f);
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.2);  /* зелёное свечение */
+    border-color: var(--primary, #c96b70);
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.25);  /* зелёное свечение */
 }
 
 select:focus {
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.2);
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.25);
 }
 
 option {
@@ -238,12 +263,12 @@ option {
 
 /* Для кнопок Web Awesome */
 wa-button:focus {
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.3) !important;
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.35) !important;
 }
 
 /* Для обычных кнопок */
 button:focus {
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.3);
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.35);
 }
 
 .login-container {
@@ -256,14 +281,17 @@ button:focus {
 
 /* Все кнопки Web Awesome */
 wa-button {
-    font-family: 'Wix Madefor Display', sans-serif;
-    font-weight: 0;
-    border-radius: 50px !important;     /* скругление углов */
-    padding: 0.75rem 1.5rem !important; /* внутренние отступы */
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
+    font-weight: 600;
+    border-radius: var(--radius) !important;
+    border: 3px solid var(--outline) !important;
+    padding: 0.75rem 1.5rem !important;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 3px 3px 0 rgba(107, 79, 58, 0.35);
+    transition: all 0.1s ease;
 }
 
 /* Компактные кнопки: размер "small" действительно маленький */
@@ -329,9 +357,9 @@ h1, h2, h3, h4 {
 
 /* Успешное сообщение (можно использовать тот же блок, но с другим классом) */
 .error-message.success {
-    background-color: #dcfce7;
-    color: #166534;
-    border-color: #bbf7d0;
+    background-color: #e3f2d8;
+    color: #3a7d44;
+    border-color: #cfe9b8;
 }
 
 @keyframes spin {
@@ -370,7 +398,7 @@ h1, h2, h3, h4 {
 }
 
 .loading-text {
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, #5c4033);
     font-size: 1rem;
     font-weight: 100;
 }
@@ -467,7 +495,7 @@ h1, h2, h3, h4 {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: var(--primary, #2d6a4f);
+    background: var(--primary, #c96b70);
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
@@ -479,7 +507,7 @@ h1, h2, h3, h4 {
 }
 
 .profile-btn:hover {
-    background: var(--primary-dark, #1b4d3e);
+    background: var(--primary-dark, #5c4033);
     transform: scale(1.05);
 }
 
@@ -506,16 +534,16 @@ h1, h2, h3, h4 {
 .profile-email {
     padding: 12px 16px;
     font-size: 0.875rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, #8a7864);
     font-weight: 500;
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
     word-break: break-all;
 }
 
 /* Разделитель */
 .dropdown-divider {
     height: 1px;
-    background: var(--border, #e2e8f0);
+    background: var(--border, #dccdb8);
     margin: 4px 0;
 }
 
@@ -527,7 +555,7 @@ h1, h2, h3, h4 {
     background: none;
     border: none;
     font-size: 0.875rem;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, #5c4033);
     cursor: pointer;
     transition: background 0.15s ease;
     display: flex;
@@ -536,15 +564,15 @@ h1, h2, h3, h4 {
 }
 
 .dropdown-item:hover {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .dropdown-item.logout {
-    color: #dc2626;
+    color: #d9534f;
 }
 
 .dropdown-item.logout:hover {
-    background: #fee2e2;
+    background: #f9d7d7;
 }
 
 /* Левая часть шапки (если нужна) */
@@ -613,21 +641,21 @@ h1, h2, h3, h4 {
 }
 
 .products-table thead {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .products-table th {
     padding: 12px 16px;
     text-align: left;
     font-weight: 600;
-    color: var(--text-primary, #1f2937);
-    border-bottom: 1px solid var(--border, #e2e8f0);
+    color: var(--text-primary, #5c4033);
+    border-bottom: 1px solid var(--border, #dccdb8);
 }
 
 .products-table td {
     padding: 12px 16px;
-    border-bottom: 1px solid var(--border, #e2e8f0);
-    color: var(--text-primary, #1f2937);
+    border-bottom: 1px solid var(--border, #dccdb8);
+    color: var(--text-primary, #5c4033);
 }
 
 .products-table tr:last-child td {
@@ -635,13 +663,13 @@ h1, h2, h3, h4 {
 }
 
 .products-table tr:hover {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .empty-state {
     text-align: center;
     padding: 2rem !important;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, #8a7864);
 }
 
 .delete-product-btn,
@@ -660,7 +688,7 @@ h1, h2, h3, h4 {
 .delete-product-btn:hover,
 .delete-unit-btn:hover {
     opacity: 1;
-    background: #fee2e2;
+    background: #f9d7d7;
 }
 
 /* Форма добавления продукта */
@@ -695,7 +723,7 @@ h1, h2, h3, h4 {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, #5c4033);
 }
 
 .form-buttons {
@@ -725,7 +753,7 @@ h1, h2, h3, h4 {
     grid-template-rows: auto auto 1fr;
     gap: 0.5rem 1.5rem;
     padding: 1rem 3rem 1.5rem;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 2rem);
     overflow: hidden;
 }
 
@@ -747,7 +775,7 @@ h1, h2, h3, h4 {
     margin: 0;
     font-size: 16px;
     font-weight: 400;
-    color: #4C5C13;
+    color: #6b4f3a;
 }
 
 .home-left {
@@ -804,6 +832,23 @@ h1, h2, h3, h4 {
     gap: 0.75rem;
 }
 
+.home-right .home-shop-footer wa-button {
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    background: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: none !important;
+    padding: 0.4rem 0.95rem !important;
+}
+
+.home-right .home-shop-footer wa-button:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary-dark) !important;
+    background: var(--bg-card) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
 .home-left #home-weekly-menu {
     flex: 1;
     min-height: 0;
@@ -820,13 +865,13 @@ h1, h2, h3, h4 {
     margin: 0;
     font-size: 16px;
     font-weight: 400;
-    color: #4C5C13;
+    color: #6b4f3a;
 }
 
 .home-empty {
     padding: 1.5rem;
     text-align: center;
-    color: #888;
+    color: #a08468;
     font-size: 0.9rem;
 }
 
@@ -866,9 +911,15 @@ h1, h2, h3, h4 {
 
 .home-recent-card img {
     width: 100%;
-    aspect-ratio: 16/10;
+    height: 100%;
     object-fit: cover;
     display: block;
+    flex-shrink: 0;
+}
+
+.home-recent-image {
+    width: auto;
+    aspect-ratio: 16/10;
     flex-shrink: 0;
 }
 
@@ -879,8 +930,8 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: center;
     font-size: 3rem;
-    color: #ccc;
-    background: var(--bg-body, #f5f5f5);
+    color: #d0c0ac;
+    background: var(--bg-soft, #fdf0f4);
     flex-shrink: 0;
 }
 
@@ -894,7 +945,7 @@ h1, h2, h3, h4 {
 .home-recent-desc {
     padding: 0 0.7rem 0.4rem;
     font-size: 0.8rem;
-    color: #888;
+    color: #a08468;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -933,8 +984,8 @@ h1, h2, h3, h4 {
 }
 
 .home-week-day-today {
-    background: #4C5C13;
-    box-shadow: 0 4px 15px rgba(76, 92, 19, 0.3);
+    background: #6b4f3a;
+    box-shadow: 0 4px 15px rgba(107, 79, 58, 0.3);
 }
 
 .home-week-day-today .home-week-day-name,
@@ -956,7 +1007,7 @@ h1, h2, h3, h4 {
 
 .home-week-day-today .home-week-add-btn {
     background: white;
-    color: #4C5C13;
+    color: #6b4f3a;
 }
 
 .home-week-day-today .home-week-add-btn:hover {
@@ -973,7 +1024,7 @@ h1, h2, h3, h4 {
 .home-week-day-name {
     font-size: 15px;
     font-weight: 600;
-    color: #4C5C13;
+    color: #6b4f3a;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -981,32 +1032,40 @@ h1, h2, h3, h4 {
 .home-week-day-date {
     font-size: 16px;
     font-weight: 700;
-    color: #4C5C13;
+    color: #6b4f3a;
 }
 
 .home-week-day-items {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0;
     min-height: 20px;
     flex: 1;
-    align-items: center;
+    width: 100%;
+    align-items: stretch;
 }
 
 .home-week-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.2rem;
-    padding: 0.25rem 0.4rem;
-    background: #FBFAF8;
-    border-radius: 16px;
+    gap: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.55rem 0.25rem;
+    background: transparent;
+    border-bottom: 1px dashed var(--border);
+    border-radius: 0;
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
+.home-week-item:last-of-type {
+    border-bottom: none;
+}
+
 .home-week-item:hover {
-    background: rgba(108, 122, 78, 0.1);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .home-week-day-today .home-week-item {
@@ -1020,17 +1079,18 @@ h1, h2, h3, h4 {
 .home-week-item-name {
     font-size: 15px;
     font-weight: 500;
-    color: #8F947B;
-    white-space: nowrap;
+    color: #a8927c;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     flex: 1;
     min-width: 0;
+    text-align: left;
 }
 
 .home-week-item-remove {
     font-size: 0.75rem;
-    color: #bbb;
+    color: #c2b09a;
     cursor: pointer;
     flex-shrink: 0;
     width: 14px;
@@ -1044,12 +1104,12 @@ h1, h2, h3, h4 {
 
 .home-week-item-remove:hover {
     color: var(--text-danger);
-    background: rgba(220, 38, 38, 0.1);
+    background: rgba(217, 83, 79, 0.12);
 }
 
 .home-week-empty {
     font-size: 0.85rem;
-    color: #ccc;
+    color: #d0c0ac;
     text-align: center;
 }
 
@@ -1058,7 +1118,7 @@ h1, h2, h3, h4 {
     height: 34px;
     border-radius: 50%;
     border: none;
-    background: #6C7A4E;
+    background: #e98d92;
     color: white;
     font-size: 1.3rem;
     cursor: pointer;
@@ -1066,11 +1126,12 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: center;
     transition: all 0.15s ease;
-    margin-top: auto;
+    margin: auto auto 0;
+    flex-shrink: 0;
 }
 
 .home-week-add-btn:hover {
-    background: #5a6840;
+    background: #6b4f3a;
     transform: scale(1.1);
 }
 
@@ -1209,7 +1270,7 @@ h1, h2, h3, h4 {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border, #e2e8f0);
+    border-bottom: 1px solid var(--border, #dccdb8);
     position: sticky;
     top: 0;
     background: var(--bg-card, white);
@@ -1220,7 +1281,7 @@ h1, h2, h3, h4 {
 .modal-header h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, #5c4033);
 }
 
 .modal-close {
@@ -1228,7 +1289,7 @@ h1, h2, h3, h4 {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, #8a7864);
     transition: color 0.2s ease;
     padding: 0;
     width: 30px;
@@ -1240,8 +1301,8 @@ h1, h2, h3, h4 {
 }
 
 .modal-close:hover {
-    color: #dc2626;
-    background: #fee2e2;
+    color: #d9534f;
+    background: #f9d7d7;
 }
 
 .modal-body {
@@ -1252,7 +1313,7 @@ h1, h2, h3, h4 {
 
 .modal-footer {
     padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border, #e2e8f0);
+    border-top: 1px solid var(--border, #dccdb8);
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
@@ -1275,7 +1336,7 @@ h1, h2, h3, h4 {
 .recipes-empty {
     text-align: center;
     padding: 3rem 2rem;
-    color: #888;
+    color: #a08468;
     font-size: 1rem;
 }
 
@@ -1330,14 +1391,14 @@ h1, h2, h3, h4 {
 }
 
 .recipe-card-delete:hover {
-    background: #dc2626;
+    background: #d9534f;
 }
 
 .recipe-card-image {
     width: 100%;
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .recipe-card-image img {
@@ -1353,7 +1414,7 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: center;
     font-size: 3rem;
-    color: #ccc;
+    color: #d0c0ac;
 }
 
 .recipe-card-body {
@@ -1370,7 +1431,7 @@ h1, h2, h3, h4 {
 
 .recipe-card-ingredients {
     font-size: 0.8rem;
-    color: #888;
+    color: #a08468;
     line-height: 1.4;
 }
 
@@ -1415,7 +1476,7 @@ h1, h2, h3, h4 {
     border: none;
     border-radius: 50px;
     font-size: 0.95rem;
-    font-family: 'Wix Madefor Display', sans-serif;
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
     color: var(--primary-dark);
     background: var(--bg-card, white);
     cursor: pointer;
@@ -1424,7 +1485,7 @@ h1, h2, h3, h4 {
 
 .ingredient-product-select:focus {
     outline: none;
-    box-shadow: 0 0 0 1px rgba(45, 106, 79, 0.2);
+    box-shadow: 0 0 0 1px rgba(201, 107, 112, 0.25);
 }
 
 .ingredient-row .ingredient-quantity {
@@ -1434,7 +1495,7 @@ h1, h2, h3, h4 {
     border: none;
     border-radius: 50px;
     font-size: 0.95rem;
-    font-family: 'Wix Madefor Display', sans-serif;
+    font-family: 'Comfortaa', 'Wix Madefor Display', sans-serif;
     color: var(--primary-dark);
 }
 
@@ -1442,7 +1503,7 @@ h1, h2, h3, h4 {
     background: none;
     border: none;
     font-size: 1.3rem;
-    color: #dc2626;
+    color: #d9534f;
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -1455,12 +1516,12 @@ h1, h2, h3, h4 {
 }
 
 .ingredient-remove-btn:hover {
-    background: #fee2e2;
+    background: #f9d7d7;
 }
 
 .add-ingredient-btn {
     background: none;
-    border: 1px dashed var(--border, #e2e8f0);
+    border: 1px dashed var(--border, #dccdb8);
     cursor: pointer;
     font-size: 0.85rem;
     padding: 0.5rem 1rem;
@@ -1473,7 +1534,7 @@ h1, h2, h3, h4 {
 
 .add-ingredient-btn:hover {
     border-color: var(--primary);
-    background: rgba(108, 122, 78, 0.05);
+    background: rgba(233, 141, 146, 0.08);
 }
 
 /* ============================================
@@ -1494,7 +1555,7 @@ h1, h2, h3, h4 {
 }
 
 .detail-field-editable:hover:not(.editing) {
-    background: var(--bg-body, #f5f2e9);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .detail-field.editing {
@@ -1506,7 +1567,7 @@ h1, h2, h3, h4 {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-secondary, #777);
+    color: var(--text-secondary, #8a7864);
     margin-bottom: 0.3rem;
 }
 
@@ -1519,7 +1580,7 @@ h1, h2, h3, h4 {
 }
 
 .detail-view.is-empty {
-    color: var(--text-secondary, #999);
+    color: var(--text-secondary, #b09a80);
     font-style: italic;
     opacity: 0.8;
 }
@@ -1538,7 +1599,7 @@ h1, h2, h3, h4 {
 
 .detail-hint {
     text-align: center;
-    color: var(--text-secondary, #999);
+    color: var(--text-secondary, #b09a80);
     font-size: 0.8rem;
     padding: 0.5rem 0 0.25rem;
 }
@@ -1568,16 +1629,16 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: space-between;
     padding: 0.4rem 0.75rem;
-    border-bottom: 1px solid #FBFAF8;
+    border-bottom: 1px solid #fdf7ea;
     transition: background 0.15s ease;
 }
 
 .shop-item:hover {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .shop-item-done .shop-name {
-    color: #aaa;
+    color: #b5a28c;
 }
 
 .shop-item-done .shop-name-text {
@@ -1598,7 +1659,7 @@ h1, h2, h3, h4 {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid #ddd;
+    border: 2px solid #dccdb8;
     border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
@@ -1635,7 +1696,7 @@ h1, h2, h3, h4 {
 .shop-name {
     font-size: 13px;
     font-weight: 400;
-    color: #0F0E07;
+    color: #5c4033;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -1647,16 +1708,16 @@ h1, h2, h3, h4 {
 }
 
 .shop-qty {
-    font-size: 0.8rem;
-    color: var(--text-menu-light, #888);
+    font-size: 0.85rem;
+    color: var(--primary-dark);
     flex-shrink: 0;
     margin-left: 0.5rem;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .shop-divider {
     height: 1px;
-    background: #FBFAF8;
+    background: #fdf7ea;
     margin: 0.4rem 0;
 }
 
@@ -1698,13 +1759,39 @@ h1, h2, h3, h4 {
 
 .menu-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(var(--menu-cols, 7), 1fr);
     gap: 0.75rem;
+    width: 100%;
+}
+
+.menu-grid-month {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.menu-grid-month .menu-day-header {
+    padding: 0.45rem 0.5rem;
+}
+
+.menu-grid-month .menu-day-items {
+    padding: 0.3rem;
+    min-height: 40px;
+}
+
+.menu-grid-month .menu-item-name {
+    font-size: 0.72rem;
+}
+
+.menu-grid-month .menu-day-add-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.85rem;
 }
 
 .menu-day {
     background: var(--bg-card, white);
-    border: 1px solid var(--border, #e2e8f0);
+    border: 1px solid var(--border, #dccdb8);
     border-radius: 12px;
     overflow: hidden;
 }
@@ -1723,8 +1810,8 @@ h1, h2, h3, h4 {
     justify-content: space-between;
     align-items: center;
     padding: 0.6rem 0.75rem;
-    background: var(--bg-body, #f5f5f5);
-    border-bottom: 1px solid var(--border, #e2e8f0);
+    background: var(--bg-soft, #fdf0f4);
+    border-bottom: 1px solid var(--border, #dccdb8);
 }
 
 .menu-day-today .menu-day-header {
@@ -1745,7 +1832,7 @@ h1, h2, h3, h4 {
 .menu-day-weekday {
     font-size: 0.65rem;
     font-weight: 600;
-    color: var(--text-menu-light, #888);
+    color: var(--text-menu-light, #a08468);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -1760,7 +1847,7 @@ h1, h2, h3, h4 {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    border: 1px dashed var(--border, #e2e8f0);
+    border: 1px dashed var(--border, #dccdb8);
     background: transparent;
     color: var(--primary);
     font-size: 1rem;
@@ -1774,7 +1861,7 @@ h1, h2, h3, h4 {
 
 .menu-day-add-btn:hover {
     border-color: var(--primary);
-    background: rgba(108, 122, 78, 0.08);
+    background: rgba(233, 141, 146, 0.12);
 }
 
 .menu-day-today .menu-day-add-btn {
@@ -1797,7 +1884,7 @@ h1, h2, h3, h4 {
 .menu-day-empty {
     text-align: center;
     padding: 0.75rem 0.25rem;
-    color: #bbb;
+    color: #c2b09a;
     font-size: 0.75rem;
 }
 
@@ -1812,7 +1899,7 @@ h1, h2, h3, h4 {
 }
 
 .menu-item:hover {
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .menu-item-info {
@@ -1830,7 +1917,7 @@ h1, h2, h3, h4 {
     border-radius: 8px;
     object-fit: cover;
     flex-shrink: 0;
-    background: var(--bg-body, #f5f5f5);
+    background: var(--bg-soft, #fdf0f4);
 }
 
 .menu-item-thumb-placeholder {
@@ -1838,7 +1925,7 @@ h1, h2, h3, h4 {
     align-items: center;
     justify-content: center;
     font-size: 1rem;
-    color: #ccc;
+    color: #d0c0ac;
 }
 
 .menu-item-text {
@@ -1857,7 +1944,7 @@ h1, h2, h3, h4 {
 
 .menu-item-quant {
     font-size: 0.68rem;
-    color: var(--text-menu-light, #888);
+    color: var(--text-menu-light, #a08468);
 }
 
 .menu-item-delete {
@@ -1865,7 +1952,7 @@ h1, h2, h3, h4 {
     height: 20px;
     border: none;
     background: none;
-    color: #ccc;
+    color: #d0c0ac;
     font-size: 1rem;
     cursor: pointer;
     border-radius: 5px;
@@ -1883,12 +1970,18 @@ h1, h2, h3, h4 {
 
 .menu-item-delete:hover {
     color: var(--text-danger);
-    background: #fee2e2;
+    background: #f9d7d7;
+}
+
+@media (max-width: 1100px) {
+    .menu-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 @media (max-width: 768px) {
     .menu-container {
-        padding: 1rem 3rem;
+        padding: 1rem;
     }
 
     .menu-period-bar {
@@ -1900,14 +1993,11 @@ h1, h2, h3, h4 {
         flex-wrap: wrap;
     }
 
-    .menu-grid {
+    .menu-grid,
+    .menu-grid-week,
+    .menu-grid-month {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 1100px) {
-    .menu-grid {
-        grid-template-columns: repeat(4, 1fr);
+        max-width: none;
     }
 }
 
@@ -1931,21 +2021,21 @@ h1, h2, h3, h4 {
 }
 
 .list-card {
-    background: var(--bg-card, #fff);
-    border: 1px solid #e8e4d9;
+    background: var(--bg-card, #fffdf7);
+    border: 1px solid #f0e7d2;
     border-radius: 16px;
     padding: 0.95rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    box-shadow: 0 1px 2px rgba(45, 106, 79, 0.05);
+    box-shadow: 0 1px 2px rgba(201, 107, 112, 0.08);
     transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
 .list-card:hover {
-    box-shadow: 0 10px 24px rgba(45, 106, 79, 0.16);
+    box-shadow: 0 10px 24px rgba(201, 107, 112, 0.2);
     transform: translateY(-3px);
-    border-color: #cfe0d3;
+    border-color: #d4e0c8;
 }
 
 .list-card-head {
@@ -1972,35 +2062,35 @@ h1, h2, h3, h4 {
     font-size: 0.68rem;
     padding: 0.12rem 0.45rem;
     border-radius: 999px;
-    background: #eee9db;
-    color: var(--text-secondary, #666);
+    background: #f3ecd8;
+    color: var(--text-secondary, #7d6b58);
     white-space: nowrap;
 }
 
 .list-badge-shared {
-    background: #e2efdd;
+    background: #e6efd9;
     color: var(--primary-dark);
 }
 
 .list-badge-archived {
-    background: #f3e2e2;
+    background: #f7dede;
     color: var(--text-danger);
 }
 
 .list-badge-member {
-    background: #dde8f5;
-    color: #2f5d9e;
+    background: #cfe0f2;
+    color: #c96b70;
 }
 
 .list-badge-recipe {
-    background: #f5f2ea;
-    color: #a09a8d;
+    background: #faf2e0;
+    color: #a08a70;
     font-size: 0.65rem;
 }
 
 .list-card-meta {
     font-size: 0.8rem;
-    color: var(--text-secondary, #777);
+    color: var(--text-secondary, #8a7864);
     display: flex;
     justify-content: space-between;
     gap: 0.5rem;
@@ -2033,10 +2123,10 @@ h1, h2, h3, h4 {
     width: 36px;
     height: 36px;
     padding: 0;
-    border: 1px solid #e8e4d9;
+    border: 1px solid #f0e7d2;
     border-radius: 11px;
-    background: var(--bg-card, #fff);
-    color: var(--text-secondary, #666);
+    background: var(--bg-card, #fffdf7);
+    color: var(--text-secondary, #7d6b58);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2045,15 +2135,15 @@ h1, h2, h3, h4 {
 }
 
 .icon-btn:hover {
-    background: var(--bg-body, #f5f2e9);
+    background: var(--bg-soft, #fdf0f4);
     border-color: var(--primary);
     color: var(--primary-dark);
 }
 
 .icon-btn-danger:hover {
-    background: #f9e5e5;
-    border-color: var(--text-danger, #c0392b);
-    color: var(--text-danger, #c0392b);
+    background: #fae2e2;
+    border-color: var(--text-danger, #c4453c);
+    color: var(--text-danger, #c4453c);
 }
 
 .icon-btn svg {
@@ -2067,13 +2157,13 @@ h1, h2, h3, h4 {
 }
 
 .lists-tab {
-    font-family: 'Wix Madefor Display', sans-serif;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
     font-size: 0.875rem;
     padding: 0.4rem 0.95rem;
-    border: 1px solid #e8e4d9;
+    border: 1px solid #f0e7d2;
     border-radius: 999px;
-    background: var(--bg-card, #fff);
-    color: var(--text-secondary, #666);
+    background: var(--bg-card, #fffdf7);
+    color: var(--text-secondary, #7d6b58);
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
@@ -2089,7 +2179,7 @@ h1, h2, h3, h4 {
 .lists-tab-active {
     background: var(--primary);
     border-color: var(--primary);
-    color: var(--bg-card, #fff);
+    color: var(--bg-card, #fffdf7);
 }
 
 .lists-tab-count {
@@ -2108,8 +2198,8 @@ h1, h2, h3, h4 {
 .list-detail-header {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    margin-bottom: 0.85rem;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
 .list-back-link {
@@ -2140,14 +2230,31 @@ h1, h2, h3, h4 {
     flex-wrap: wrap;
 }
 
+.list-detail-actions wa-button[variant="text"] {
+    border: 1px solid var(--border) !important;
+    border-radius: 999px !important;
+    background: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: none !important;
+    padding: 0.4rem 0.95rem !important;
+}
+
+.list-detail-actions wa-button[variant="text"]:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary-dark) !important;
+    background: var(--bg-card) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
 .list-guest-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-    background: #f6f1e2;
-    border: 1px solid #e5d9b8;
+    background: #faf3e2;
+    border: 1px solid #ead9b4;
     border-radius: 10px;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
@@ -2167,11 +2274,11 @@ h1, h2, h3, h4 {
 }
 
 .list-panel {
-    background: var(--bg-card, #fff);
-    border: 1px solid #e8e4d9;
+    background: var(--bg-card, #fffdf7);
+    border: 1px solid #f0e7d2;
     border-radius: 16px;
     padding: 0.95rem 1rem;
-    box-shadow: 0 1px 2px rgba(45, 106, 79, 0.05);
+    box-shadow: 0 1px 2px rgba(201, 107, 112, 0.08);
 }
 
 .list-panel-header {
@@ -2201,7 +2308,7 @@ h1, h2, h3, h4 {
     align-items: center;
     gap: 0.75rem;
     padding: 0.55rem 0;
-    border-bottom: 1px solid #efece2;
+    border-bottom: 1px solid #f6efdd;
 }
 
 .list-recipe-row:last-child {
@@ -2220,7 +2327,7 @@ h1, h2, h3, h4 {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0ece0;
+    background: #f7efdd;
     font-size: 1.25rem;
 }
 
@@ -2248,14 +2355,14 @@ h1, h2, h3, h4 {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.85rem;
-    color: var(--text-secondary, #777);
+    color: var(--text-secondary, #8a7864);
     margin-top: 0.25rem;
 }
 
 .list-portions-input {
     width: 64px;
     padding: 0.25rem 0.4rem;
-    border: 1px solid #ddd;
+    border: 1px solid #dccdb8;
     border-radius: 8px;
     font-size: 0.85rem;
 }
@@ -2275,20 +2382,21 @@ h1, h2, h3, h4 {
 
 .list-recipe-remove:hover,
 .list-item-remove:hover {
-    background: #f6e5e5;
+    background: #f9e0e0;
 }
 
 .list-item-qty-wrap {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.35rem;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .list-item-qty-input {
-    width: 72px;
+    width: 4.5rem;
     padding: 0.25rem 0.4rem;
-    border: 1px solid #ddd;
+    border: 1px solid #dccdb8;
     border-radius: 8px;
     font-size: 0.85rem;
     text-align: right;
@@ -2320,7 +2428,7 @@ h1, h2, h3, h4 {
         gap: 0.25rem;
         padding: 0.25rem;
         margin-bottom: 0.85rem;
-        background: #ece8dc;
+        background: #f3ecd8;
         border-radius: 999px;
     }
 
@@ -2330,18 +2438,18 @@ h1, h2, h3, h4 {
         border: none;
         border-radius: 999px;
         background: transparent;
-        font-family: 'Wix Madefor Display', sans-serif;
+        font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
         font-size: 0.925rem;
-        color: var(--text-secondary, #666);
+        color: var(--text-secondary, #7d6b58);
         cursor: pointer;
         transition: all 0.15s ease;
     }
 
     .list-mobile-tab-active {
-        background: var(--bg-card, #fff);
+        background: var(--bg-card, #fffdf7);
         color: var(--primary-dark);
         font-weight: 600;
-        box-shadow: 0 2px 8px rgba(45, 106, 79, 0.15);
+        box-shadow: 0 2px 8px rgba(201, 107, 112, 0.2);
     }
 
     .list-detail-columns.mobile-show-items .list-panel-recipes {
@@ -2355,4 +2463,1702 @@ h1, h2, h3, h4 {
     .lists-container {
         padding: 1rem;
     }
+}
+
+
+/* ============================================
+   STICKER CLUB THEME (cream + rose windows)
+   ============================================ */
+
+h1, h2, h3, h4 {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    font-size: 1.9rem;
+    color: var(--text-primary);
+}
+
+.home-welcome {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    font-size: 2.1rem;
+}
+
+/* --- Общий вид окна --- */
+.modal-container,
+.home-right,
+.list-panel,
+.products-table-wrapper,
+.shop-list-card,
+.recipe-card,
+.list-card,
+.menu-day,
+.home-recent-card,
+.home-week-day,
+.form-card {
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    background: var(--bg-card);
+    position: relative;
+}
+
+.modal-container:hover,
+.home-right:hover,
+.list-panel:hover,
+.products-table-wrapper:hover,
+.shop-list-card:hover,
+.recipe-card:hover,
+.list-card:hover,
+.menu-day:hover,
+.home-recent-card:hover,
+.home-week-day:hover {
+    box-shadow: 5px 5px 0 rgba(210, 123, 161, 0.35);
+}
+
+/* --- Плашки окон с кружками ○○○ (три точки фоном справа) --- */
+.win-bar,
+.modal-header,
+.home-right .home-section-header,
+.list-panel-header {
+    position: relative;
+    background-color: var(--title-pink);
+    background-image: var(--win-dots);
+    background-position: var(--win-dots-pos);
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+    border-bottom: 3px solid var(--outline);
+}
+
+.win-bar,
+.modal-header h3,
+.home-right .home-section-header h2,
+.list-panel-header h3 {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+}
+
+.modal-header {
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+    padding: 0.85rem 7rem 0.85rem 1.25rem;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    font-size: 1.35rem;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 3px solid var(--outline);
+    background: var(--title-yellow);
+    color: var(--outline);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.3);
+    padding: 0;
+    transition: all 0.1s ease;
+}
+
+.modal-close:hover {
+    background: var(--primary);
+    color: var(--bg-card);
+}
+
+.modal-close:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+/* две декоративные точки слева от кнопки закрытия (кнопка = третий кружок) */
+.modal-header {
+    background-image: var(--win-dots);
+    background-position: calc(100% - 52px) 50%, calc(100% - 68px) 50%, calc(100% - 84px) 50%;
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+}
+
+.modal-close {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.modal-close:hover {
+    transform: translateY(-50%);
+}
+
+.modal-close:active {
+    transform: translateY(-50%) translate(2px, 2px);
+}
+
+.home-right .home-section-header {
+    padding: 0.75rem 1.15rem;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+    background-color: var(--title-mint);
+    background-image: var(--win-dots);
+    background-position: var(--win-dots-pos);
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+    border-bottom: 3px solid var(--outline);
+}
+
+.home-right .home-section-header h2 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    padding: 0 84px;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.list-panel-header {
+    padding: 0.7rem 1rem 0.55rem;
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+}
+
+.list-panel-header h3 {
+    margin: 0;
+    padding-right: 84px;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+}
+
+.list-panel-recipes .list-panel-header {
+    background-color: var(--title-blue);
+}
+
+.list-panel-items .list-panel-header {
+    background-color: var(--title-yellow);
+}
+
+.list-panel-header .list-panel-actions {
+    padding-right: 72px;
+}
+
+/* тонкие плашки маленьких карточек (без текста) */
+.home-recent-card::before,
+.recipe-card::before,
+.list-card::before,
+.menu-day::before,
+.shop-list-card::before {
+    content: '';
+    display: block;
+    height: 22px;
+    background-color: var(--title-pink);
+    background-image: var(--win-dots);
+    background-position: var(--win-dots-pos);
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+    border-bottom: 3px solid var(--outline);
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+}
+
+.home-recent-card:nth-child(3n+2)::before { background-color: var(--title-mint); }
+.home-recent-card:nth-child(3n+3)::before { background-color: var(--title-yellow); }
+.recipe-card:nth-child(3n+2)::before { background-color: var(--title-blue); }
+.recipe-card:nth-child(3n+3)::before { background-color: var(--title-yellow); }
+.list-card:nth-child(4n+2)::before { background-color: var(--title-mint); }
+.list-card:nth-child(4n+3)::before { background-color: var(--title-blue); }
+.list-card:nth-child(4n+4)::before { background-color: var(--title-yellow); }
+.menu-day:nth-child(7n+2)::before,
+.menu-day:nth-child(7n+5)::before { background-color: var(--title-mint); }
+.menu-day:nth-child(7n+3)::before,
+.menu-day:nth-child(7n+6)::before { background-color: var(--title-blue); }
+.menu-day:nth-child(7n+4)::before { background-color: var(--title-yellow); }
+.shop-list-card::before { background-color: var(--title-mint); }
+
+/* --- Фото: приглушение + розовый оверлей + маска плёнки --- */
+.recipe-card-image,
+.home-recent-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.recipe-card-image {
+    width: auto;
+    margin: 0.65rem 0.65rem 0;
+    border-radius: 4px;
+}
+
+.home-recent-image {
+    margin: 0.55rem 0.55rem 0;
+    border-radius: 4px;
+}
+
+.home-recent-placeholder {
+    margin: 0.55rem 0.55rem 0;
+    border-radius: 4px;
+    width: auto;
+}
+
+.recipe-card-image img,
+.home-recent-image img {
+    filter: saturate(0.8) brightness(1.03) contrast(0.97);
+}
+
+.recipe-card-image::after,
+.home-recent-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(242, 184, 198, 0.15);
+    pointer-events: none;
+}
+
+/* Маска «плёнка»: полукруглые перфорации по левому и правому краю */
+.recipe-card-image,
+.home-recent-image {
+    --film-hole: 7px;
+    --film-step: 18px;
+    -webkit-mask-image:
+        radial-gradient(circle var(--film-hole) at left, transparent 96%, #000 100%),
+        radial-gradient(circle var(--film-hole) at right, transparent 96%, #000 100%);
+    -webkit-mask-size: 100% var(--film-step), 100% var(--film-step);
+    -webkit-mask-repeat: repeat-y, repeat-y;
+    -webkit-mask-composite: source-in;
+    mask-image:
+        radial-gradient(circle var(--film-hole) at left, transparent 96%, #000 100%),
+        radial-gradient(circle var(--film-hole) at right, transparent 96%, #000 100%);
+    mask-size: 100% var(--film-step), 100% var(--film-step);
+    mask-repeat: repeat-y, repeat-y;
+    mask-composite: intersect;
+}
+
+/* Маленькие превью — только приглушение и лёгкий розовый тон */
+.menu-item-thumb,
+.list-recipe-thumb,
+.home-recent-placeholder,
+.recipe-card-placeholder {
+    filter: saturate(0.85) brightness(1.02);
+}
+
+.menu-item-thumb,
+.list-recipe-thumb {
+    border: 2px solid var(--outline);
+}
+
+/* Заголовок рецепта — пиксельный розовый */
+.recipe-card-name,
+.home-recent-name {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    color: var(--primary);
+    letter-spacing: 0.06em;
+    font-size: 1.2rem;
+}
+
+.home-recent-card { overflow: hidden; }
+.menu-day-today { border-color: var(--primary-dark); }
+.home-week-day.home-week-day-today {
+    background: var(--title-yellow);
+}
+.home-week-day.home-week-day-today .home-week-day-name,
+.home-week-day.home-week-day-today .home-week-day-date,
+.home-week-day.home-week-day-today .home-week-item-name {
+    color: var(--text-primary);
+}
+.home-week-day.home-week-day-today .home-week-item {
+    background: rgba(255, 255, 255, 0.55);
+}
+.home-week-day.home-week-day-today .home-week-item:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+.home-week-day.home-week-day-today .home-week-add-btn {
+    background: var(--bg-card);
+    color: var(--outline);
+}
+.home-week-day.home-week-day-today .home-week-item-remove {
+    color: var(--text-menu-light);
+}
+
+/* --- Вложенные списки: без рамок, только разделители --- */
+.home-right .shop-list-card,
+.list-panel .shop-list-card {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.home-right .shop-list-card::before,
+.list-panel .shop-list-card::before {
+    display: none;
+}
+
+.home-right:hover .shop-list-card,
+.list-panel:hover .shop-list-card {
+    box-shadow: none;
+}
+
+.shop-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    border-bottom: 1px dashed var(--border);
+    transition: background 0.15s ease;
+}
+
+.shop-item:last-child {
+    border-bottom: none;
+}
+
+.shop-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+}
+
+.shop-label .shop-checkbox {
+    margin-top: 0.15rem;
+}
+
+.shop-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shop-qty {
+    flex-shrink: 0;
+    margin-left: 0;
+    margin-top: 0.15rem;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: var(--text-menu);
+}
+
+.list-item-qty-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.list-item-qty-wrap .shop-qty {
+    margin: 0;
+}
+
+.list-item-qty-wrap .list-item-qty-input {
+    width: 4.5rem;
+    flex: 0 0 auto;
+}
+
+.list-item-qty-wrap .list-item-remove {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-recipe-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px dashed var(--border);
+}
+
+/* --- Кнопки --- */
+wa-button {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    border-radius: var(--radius) !important;
+    border: 3px solid var(--outline) !important;
+    padding: 0.55rem 1.35rem !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 3px 3px 0 rgba(210, 123, 161, 0.3);
+    transition: all 0.1s ease;
+}
+
+wa-button[size="small"] {
+    padding: 0.35rem 0.95rem !important;
+    font-size: 0.85rem;
+}
+
+wa-button:not([variant]) {
+    background-color: var(--title-yellow) !important;
+    color: var(--text-primary) !important;
+}
+
+wa-button:not([variant]):hover {
+    background-color: var(--title-pink) !important;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.35);
+}
+
+wa-button[variant="primary"] {
+    background-color: var(--title-mint) !important;
+    color: var(--text-primary) !important;
+}
+
+wa-button[variant="primary"]:hover {
+    background-color: var(--primary) !important;
+    color: var(--bg-card) !important;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.35);
+}
+
+wa-button[variant="text"] {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0.55rem 1.15rem !important;
+}
+
+wa-button[variant="text"]:hover {
+    border-color: var(--outline) !important;
+    background: var(--bg-card) !important;
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25) !important;
+}
+
+wa-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: none !important;
+}
+
+.home-week-add-btn,
+.icon-btn {
+    border: 3px solid var(--outline);
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+}
+
+.home-week-add-btn:active,
+.icon-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+.delete-product-btn,
+.delete-unit-btn {
+    border: 3px solid var(--outline);
+    background: var(--bg-card);
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+    border-radius: var(--radius);
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    color: var(--text-primary);
+}
+
+.delete-product-btn:hover,
+.delete-unit-btn:hover {
+    background: var(--title-pink);
+    box-shadow: 3px 3px 0 rgba(210, 123, 161, 0.3);
+}
+
+/* --- Поля ввода --- */
+.input-field,
+.list-portions-input,
+.list-item-qty-input,
+.menu-date-input {
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    box-shadow: inset 2px 2px 0 rgba(210, 123, 161, 0.15);
+}
+
+.input-field:focus,
+.list-portions-input:focus,
+.list-item-qty-input:focus,
+.menu-date-input:focus {
+    box-shadow: inset 2px 2px 0 rgba(210, 123, 161, 0.15), 0 0 0 2px var(--title-yellow);
+    border-color: var(--outline);
+}
+
+.list-item-qty-input {
+    text-align: center;
+}
+
+.list-portions-input {
+    text-align: center;
+}
+
+/* --- Таблица продуктов: узкие колонки у названия --- */
+.products-table thead {
+    background: var(--title-blue);
+    border-bottom: 3px solid var(--outline);
+    background-color: var(--title-blue);
+    background-image: var(--win-dots);
+    background-position: var(--win-dots-pos);
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+}
+
+.products-table th {
+    color: var(--text-primary);
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    border-bottom: 3px solid var(--outline);
+}
+
+.products-table td {
+    border-bottom: 1px dashed var(--border);
+}
+
+.products-table th:nth-child(2):not(:last-child),
+.products-table td:nth-child(2):not(:last-child) {
+    width: 1%;
+    white-space: nowrap;
+    padding-left: 0.9rem;
+    padding-right: 0.4rem;
+}
+
+.products-table th:first-child,
+.products-table td:first-child {
+    width: 100%;
+}
+
+.products-table th:last-child,
+.products-table td:last-child {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.products-table th.col-actions {
+    width: 1%;
+}
+
+/* --- Шапка приложения --- */
+.app-header {
+    background: var(--bg-card);
+    border-bottom: 3px solid var(--outline);
+}
+
+.nav-buttons wa-button {
+    border: 2px solid transparent !important;
+    box-shadow: none !important;
+    padding: 0.55rem 1.15rem !important;
+}
+
+.nav-buttons wa-button:hover,
+.nav-buttons wa-button[aria-current="true"] {
+    border-color: var(--outline) !important;
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25) !important;
+    background: var(--bg-card) !important;
+}
+
+.nav-title {
+    display: none;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    padding: 0.85rem 1.25rem 0.55rem;
+    background: var(--title-pink);
+    border-bottom: 3px solid var(--outline);
+}
+
+.profile-btn {
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+}
+
+.profile-dropdown {
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.3);
+}
+
+/* --- Кнопка периода --- */
+.period-btn {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    padding: 0.55rem 1.35rem;
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--title-yellow);
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: 3px 3px 0 rgba(210, 123, 161, 0.3);
+    transition: all 0.1s ease;
+}
+
+.period-btn:hover {
+    background: var(--title-pink);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.35);
+}
+
+.period-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+/* --- Календарь выбора периода --- */
+.period-picker {
+    user-select: none;
+}
+
+.pp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.pp-month {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+}
+
+.pp-nav-btn {
+    width: 34px;
+    height: 34px;
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--title-mint);
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+    transition: all 0.1s ease;
+}
+
+.pp-nav-btn:hover {
+    background: var(--title-pink);
+}
+
+.pp-nav-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+.pp-weekdays,
+.pp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.pp-weekdays {
+    margin-bottom: 4px;
+}
+
+.pp-weekdays span {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-menu-light);
+    padding: 0.2rem 0;
+}
+
+.pp-day {
+    aspect-ratio: 1;
+    min-height: 36px;
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    background: var(--bg-body);
+    color: var(--text-primary);
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.pp-day:hover {
+    border-color: var(--outline);
+    background: var(--title-yellow);
+}
+
+.pp-day.pp-in {
+    background: var(--title-mint);
+    border-color: transparent;
+}
+
+.pp-day.pp-edge {
+    background: var(--title-pink);
+    border-color: var(--outline);
+    font-weight: 700;
+}
+
+.pp-day.pp-empty {
+    background: transparent;
+    cursor: default;
+}
+
+.pp-summary {
+    margin-top: 0.85rem;
+    text-align: center;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    color: var(--text-primary);
+    min-height: 1.3em;
+}
+
+/* --- Модалка: подвал и тело --- */
+.modal-footer {
+    border-top: 3px solid var(--outline);
+    background: var(--title-blue);
+}
+
+.loading-content {
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.3);
+}
+
+.loading-spinner {
+    border-top-color: var(--primary);
+    border-radius: 50%;
+}
+
+.empty-state,
+.home-empty,
+.recipes-empty {
+    color: var(--text-menu-light);
+    font-style: italic;
+}
+
+.list-guest-banner,
+.list-mobile-tabs {
+    border: 3px solid var(--outline);
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.2);
+}
+
+.list-mobile-tab-active {
+    border: 3px solid var(--outline);
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+}
+
+@media (max-width: 640px) {
+    .nav-title {
+        display: block;
+    }
+
+    .nav-buttons {
+        border: 3px solid var(--outline);
+        border-radius: var(--radius);
+    }
+
+    .nav-buttons wa-button {
+        border-radius: 0 !important;
+        border: none !important;
+        border-bottom: 1px dashed var(--border) !important;
+    }
+
+    .nav-buttons wa-button:hover {
+        box-shadow: none !important;
+    }
+}
+
+/* --- Плашки во всю ширину карточек с отступами --- */
+.list-card::before {
+    margin: -0.95rem -1rem 0;
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+}
+
+.shop-list-card {
+    padding: 0;
+}
+
+.list-panel-header {
+    margin: -0.95rem -1rem 0.55rem;
+}
+
+.modal-footer {
+    border-radius: 0 0 calc(var(--radius) - 3px) calc(var(--radius) - 3px);
+    background: var(--title-blue);
+}
+/* ============================================================
+   БОКОВОЕ МЕНЮ (ретро-иконки)
+   ============================================================ */
+.app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 86px;
+    background: var(--title-pink);
+    border-right: 3px solid var(--outline);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    z-index: 30;
+    overflow: visible;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.sidebar-btn {
+    width: 54px;
+    height: 54px;
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.55);
+    color: var(--outline);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 3px 3px 0 rgba(210, 123, 161, 0.3);
+    transition: all 0.1s ease;
+}
+
+.sidebar-btn svg {
+    width: 28px;
+    height: 28px;
+}
+
+.sidebar-btn:hover {
+    background: var(--bg-card);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 rgba(210, 123, 161, 0.35);
+}
+
+.sidebar-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+.sidebar-btn-active {
+    background: var(--title-yellow);
+    color: var(--outline);
+}
+
+.sidebar-login-btn {
+    background: var(--title-mint);
+}
+
+.sidebar-btn-label {
+    display: none;
+}
+
+.app-sidebar .profile-btn {
+    width: 54px;
+    height: 54px;
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    box-shadow: 3px 3px 0 rgba(210, 123, 161, 0.3);
+}
+
+.app-sidebar .profile-dropdown {
+    top: 0;
+    left: calc(100% + 12px);
+}
+
+#content {
+    margin-left: 86px;
+    min-height: 100vh;
+}
+
+@media (max-width: 640px) {
+    .shopping-container,
+    .products-container {
+        padding: 1rem;
+    }
+}
+
+/* ============================================================
+   ПОЛЯ КОЛИЧЕСТВА: центр + без стрелочек спиннера
+   ============================================================ */
+.list-portions-input,
+.list-item-qty-input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+    text-align: center;
+}
+
+.list-portions-input::-webkit-outer-spin-button,
+.list-portions-input::-webkit-inner-spin-button,
+.list-item-qty-input::-webkit-outer-spin-button,
+.list-item-qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.list-item-qty-input {
+    text-align: center;
+}
+
+.list-portions-input {
+    text-align: center;
+}
+
+/* ============================================================
+   УЗКИЕ СТРАНИЦЫ: Список покупок и Продукты
+   ============================================================ */
+.shopping-container,
+.products-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.25rem 1.25rem 2rem;
+}
+
+/* ============================================================
+   МОИ СПИСКИ: одинаковые плашки «Рецепты» и «Продукты»
+   ============================================================ */
+.list-panel-header {
+    margin: -0.95rem -1rem 0.55rem;
+    padding: 0.55rem 1.15rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border-radius: calc(var(--radius) - 3px) calc(var(--radius) - 3px) 0 0;
+}
+
+.list-panel-header h3 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    padding: 0 84px;
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.list-panel-recipes .list-panel-header,
+.list-panel-items .list-panel-header {
+    background-color: var(--title-pink);
+    background-image: var(--win-dots);
+    background-position: var(--win-dots-pos);
+    background-size: var(--win-dots-size);
+    background-repeat: no-repeat;
+    border-bottom: 3px solid var(--outline);
+}
+
+.list-panel-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0 0.15rem 0.35rem;
+    border-bottom: 1px dashed var(--border);
+    margin-bottom: 0.35rem;
+}
+
+.list-panel .list-panel-actions wa-button[variant="primary"] {
+    min-width: 150px;
+    justify-content: center;
+}
+
+/* ============================================================
+   СКРОЛЛБАРЫ В ОБЩЕМ СТИЛЕ
+   ============================================================ */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--bg-soft);
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-soft);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border: 3px solid var(--outline);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--bg-soft);
+}
+
+/* ============================================================
+   МОБИЛЬНАЯ ВЕРСИЯ: меню-бургер, сетки, модалки
+   ============================================================ */
+.burger-btn {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--outline);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    color: var(--outline);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25);
+    padding: 0;
+}
+
+.burger-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.sidebar-topbar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: auto;
+        width: 100%;
+        height: 58px;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px;
+        border-right: none;
+        border-bottom: 3px solid var(--outline);
+        overflow: visible;
+    }
+
+    .sidebar-topbar {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .burger-btn {
+        display: inline-flex;
+    }
+
+    .app-sidebar .profile-container {
+        margin: 0 auto 0 0;
+        order: -1;
+    }
+
+    .app-sidebar .profile-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .app-sidebar .sidebar-login-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .app-sidebar .theme-toggle-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .sidebar-nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px;
+        background: var(--title-pink);
+        border-bottom: 3px solid var(--outline);
+        box-shadow: 0 6px 0 rgba(210, 123, 161, 0.25);
+    }
+
+    .sidebar-nav.nav-open {
+        display: flex;
+    }
+
+    .sidebar-nav .sidebar-btn {
+        width: 100%;
+        height: 48px;
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 14px;
+        font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+        letter-spacing: 0.06em;
+        font-size: 0.95rem;
+    }
+
+    .sidebar-btn svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    .sidebar-nav .sidebar-btn-label {
+        display: inline;
+    }
+
+    #content {
+        margin-left: 0;
+        margin-top: 58px;
+        min-height: calc(100vh - 58px);
+    }
+
+    .app-sidebar .profile-dropdown {
+        top: calc(100% + 8px);
+        left: 0;
+        right: auto;
+        min-width: 220px;
+    }
+
+    /* Модалки в пределах экрана */
+    .modal-container {
+        width: calc(100vw - 1.5rem) !important;
+        max-width: none !important;
+        max-height: 84vh;
+    }
+
+    .share-link-row {
+        flex-wrap: wrap;
+    }
+
+    .share-link-row .input-field {
+        min-width: 0;
+        flex-basis: 100%;
+    }
+
+    .modal-header {
+        padding: 0.7rem 3.2rem 0.7rem 0.9rem;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        padding: 0.75rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    /* Меню на неделю на главной: горизонтальный скролл крупными карточками */
+    .home-week-grid {
+        display: flex;
+        gap: 0.65rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scroll-snap-type: x mandatory;
+    }
+
+    .home-week-day {
+        flex: 0 0 72vw;
+        width: auto;
+        scroll-snap-align: start;
+        padding: 1.1rem 0.6rem;
+    }
+
+    .home-week-day-name {
+        font-size: 13px;
+    }
+
+    .home-week-day-date {
+        font-size: 15px;
+    }
+
+    .home-week-item-name {
+        font-size: 0.95rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+    }
+
+    /* Мои рецепты: по центру */
+    .recipes-container {
+        padding: 1rem;
+    }
+
+    .recipes-grid {
+        justify-items: center;
+    }
+
+    .recipe-card {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    /* Мои продукты: короткий заголовок колонки */
+    .products-table th .th-short {
+        display: inline;
+    }
+
+    .products-table th .th-full {
+        display: none;
+    }
+
+    /* Внутри списка: компактнее */
+    .list-panel {
+        padding: 0.7rem;
+        min-width: 0;
+    }
+
+    .list-detail-columns > * {
+        min-width: 0;
+    }
+
+    .list-panel-header {
+        margin: -0.7rem -0.7rem 0.55rem;
+    }
+
+    .list-recipe-thumb {
+        width: 36px;
+        height: 36px;
+    }
+
+    .list-portions-input,
+    .list-item-qty-input {
+        width: 3.4rem;
+    }
+
+    .list-item-qty-wrap {
+        gap: 0.25rem;
+        margin-top: 0.15rem;
+    }
+
+    .list-item-qty-wrap .list-item-qty-input {
+        width: 3.4rem;
+    }
+
+    .list-item-remove {
+        margin-left: 0;
+    }
+
+    .list-recipe-row {
+        padding: 0.4rem 0.25rem;
+        flex-wrap: wrap;
+    }
+
+    .shop-item {
+        padding: 0.4rem 0.25rem;
+        flex-wrap: nowrap;
+    }
+
+    .list-recipe-row .list-recipe-info {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .list-recipe-row .list-recipe-name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+    }
+
+    .list-recipe-portions {
+        flex-wrap: wrap;
+    }
+
+    .list-panel .shop-item,
+    .home-right .shop-item {
+        column-gap: 0.45rem;
+    }
+
+    .list-panel .shop-name,
+    .home-right .shop-name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        word-break: break-word;
+    }
+
+    .home-right .shop-qty {
+        margin-left: 0.35rem;
+    }
+
+    .list-panel .list-panel-actions wa-button[variant="primary"] {
+        min-width: 0;
+    }
+
+    .list-detail-columns {
+        gap: 0.75rem;
+    }
+
+    /* Табы Продукты/Рецепты — простой свитч */
+    .list-mobile-tabs {
+        display: flex;
+        width: fit-content;
+        margin: 0 auto 0.85rem;
+        gap: 0;
+        padding: 4px;
+        background: var(--bg-soft);
+        border: 3px solid var(--outline);
+        border-radius: var(--radius-full);
+    }
+
+    .list-mobile-tab {
+        border: none !important;
+        border-radius: var(--radius-full) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: var(--text-primary) !important;
+        font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+        letter-spacing: 0.06em;
+        padding: 0.45rem 1.35rem;
+    }
+
+    .list-mobile-tab-active {
+        background: var(--title-pink) !important;
+        border-color: transparent !important;
+        box-shadow: 2px 2px 0 rgba(210, 123, 161, 0.25) !important;
+        color: var(--text-primary) !important;
+        font-weight: 400 !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .products-table th .th-short {
+        display: none;
+    }
+
+    .products-table th .th-full {
+        display: inline;
+    }
+}
+
+/* ============================================================
+   ТЁМНАЯ ТЕМА
+   ============================================================ */
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg-body: #241c2f;
+    --bg-card: #2f2438;
+    --bg-soft: #3b2c47;
+    --text-primary: #f2e6ef;
+    --text-secondary: #bfa6ba;
+    --text-menu: #d8c2ce;
+    --text-menu-light: #a98ba0;
+    --text-danger: #ff8fa3;
+    --border: #5e4566;
+    --outline: #f0a3c2;
+    --primary: #e88ba8;
+    --primary-dark: #f2a8c4;
+    --title-pink: #8c5270;
+    --title-mint: #7d9478;
+    --title-blue: #4c678a;
+    --title-yellow: #a38f5f;
+    --shadow-sm: 3px 3px 0 rgba(0, 0, 0, 0.35);
+    --shadow-md: 5px 5px 0 rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] body {
+    background-color: var(--bg-body);
+    background-image:
+        linear-gradient(rgba(230, 200, 220, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(230, 200, 220, 0.08) 1px, transparent 1px);
+}
+
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] .custom-select-trigger::placeholder,
+html[data-theme="dark"] .custom-select-empty {
+    color: #9a8296;
+}
+
+html[data-theme="dark"] input:-webkit-autofill,
+html[data-theme="dark"] input:-webkit-autofill:hover,
+html[data-theme="dark"] input:-webkit-autofill:focus,
+html[data-theme="dark"] input:-webkit-autofill:active {
+    -webkit-box-shadow: inset 0 0 0 1000px var(--bg-card);
+    -webkit-text-fill-color: var(--text-primary);
+}
+
+html[data-theme="dark"] .error-message.success {
+    background-color: #2c3d26;
+    color: #a6d18a;
+    border-color: #4a6340;
+}
+
+html[data-theme="dark"] .dropdown-item.logout {
+    color: #ff8fa3;
+}
+
+html[data-theme="dark"] .dropdown-item.logout:hover {
+    background: rgba(255, 143, 163, 0.15);
+}
+
+html[data-theme="dark"] .home-container > .home-section-header h2,
+html[data-theme="dark"] .home-section-header h2 {
+    color: var(--text-menu);
+}
+
+html[data-theme="dark"] .home-empty,
+html[data-theme="dark"] .home-recent-desc,
+html[data-theme="dark"] .recipes-empty,
+html[data-theme="dark"] .recipe-card-ingredients,
+html[data-theme="dark"] .empty-state {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .home-recent-placeholder,
+html[data-theme="dark"] .home-week-empty,
+html[data-theme="dark"] .menu-day-empty,
+html[data-theme="dark"] .menu-item-thumb-placeholder,
+html[data-theme="dark"] .menu-item-delete,
+html[data-theme="dark"] .recipe-card-placeholder {
+    color: #7a6a80;
+}
+
+html[data-theme="dark"] .home-week-day-name,
+html[data-theme="dark"] .home-week-day-date {
+    color: var(--text-menu);
+}
+
+html[data-theme="dark"] .home-week-day-today {
+    background: var(--primary-dark);
+}
+
+html[data-theme="dark"] .home-week-item-name {
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .home-week-item-remove {
+    color: #8a7290;
+}
+
+html[data-theme="dark"] .home-week-add-btn:hover {
+    background: var(--primary-dark);
+}
+
+html[data-theme="dark"] .modal-close:hover,
+html[data-theme="dark"] .ingredient-remove-btn,
+html[data-theme="dark"] .dropdown-item.logout {
+    color: #ff8fa3;
+}
+
+html[data-theme="dark"] .modal-close:hover,
+html[data-theme="dark"] .ingredient-remove-btn:hover,
+html[data-theme="dark"] .menu-item-delete:hover,
+html[data-theme="dark"] .list-recipe-remove:hover,
+html[data-theme="dark"] .list-item-remove:hover,
+html[data-theme="dark"] .delete-unit-btn:hover,
+html[data-theme="dark"] .delete-product-btn:hover {
+    background: rgba(255, 143, 163, 0.15);
+}
+
+html[data-theme="dark"] .shop-item {
+    border-bottom: 1px dashed var(--border);
+}
+
+html[data-theme="dark"] .shop-item-done .shop-name {
+    color: #8a7290;
+}
+
+html[data-theme="dark"] .shop-name {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .shop-checkbox {
+    border: 2px solid var(--border);
+    background: var(--bg-card);
+}
+
+html[data-theme="dark"] .shop-divider {
+    background: var(--border);
+}
+
+html[data-theme="dark"] .list-recipe-row {
+    border-bottom: 1px dashed var(--border);
+}
+
+html[data-theme="dark"] .list-recipe-thumb-placeholder {
+    background: var(--bg-soft);
+}
+
+html[data-theme="dark"] .list-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-menu);
+}
+
+html[data-theme="dark"] .list-badge-shared {
+    background: rgba(166, 209, 138, 0.18);
+    color: #a6d18a;
+}
+
+html[data-theme="dark"] .list-badge-archived {
+    background: rgba(255, 143, 163, 0.18);
+    color: #ff8fa3;
+}
+
+html[data-theme="dark"] .list-badge-member {
+    background: rgba(125, 168, 214, 0.18);
+    color: #9cc3ef;
+}
+
+html[data-theme="dark"] .list-badge-recipe {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+}
+
+html[data-theme="dark"] .icon-btn,
+html[data-theme="dark"] .lists-tab,
+html[data-theme="dark"] .list-detail-actions wa-button[variant="text"] {
+    border-color: var(--border);
+    background: var(--bg-card);
+    color: var(--text-menu);
+}
+
+html[data-theme="dark"] .icon-btn:hover,
+html[data-theme="dark"] .lists-tab:hover {
+    background: var(--bg-soft);
+}
+
+html[data-theme="dark"] .list-detail-actions wa-button[variant="text"]:hover,
+html[data-theme="dark"] .home-right .home-shop-footer wa-button:hover {
+    background: var(--bg-soft) !important;
+}
+
+html[data-theme="dark"] .home-right .home-shop-footer wa-button {
+    color: var(--text-menu) !important;
+}
+
+html[data-theme="dark"] .icon-btn-danger:hover {
+    background: rgba(255, 143, 163, 0.15);
+    border-color: var(--text-danger);
+    color: var(--text-danger);
+}
+
+html[data-theme="dark"] .list-guest-banner {
+    background: var(--bg-soft);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .share-link-row .input-field {
+    background: var(--bg-soft);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .modal-overlay,
+html[data-theme="dark"] .loading-overlay {
+    background: rgba(10, 5, 15, 0.72);
+}
+
+html[data-theme="dark"] .home-week-day {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .home-week-day-today {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .app-sidebar {
+    background: var(--title-pink);
+}
+
+html[data-theme="dark"] .sidebar-btn {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f7d9e6;
+}
+
+html[data-theme="dark"] .sidebar-btn:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+html[data-theme="dark"] .sidebar-btn-active {
+    background: var(--title-yellow);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .sidebar-login-btn {
+    background: var(--title-mint);
+}
+
+/* На ярких жёлтых/зелёных плашках тёмной темы — тёмный текст */
+html[data-theme="dark"] wa-button[variant="primary"],
+html[data-theme="dark"] wa-button:not([variant]),
+html[data-theme="dark"] .period-btn,
+html[data-theme="dark"] .pp-nav-btn,
+html[data-theme="dark"] .pp-day.pp-in,
+html[data-theme="dark"] .modal-close {
+    color: #2b2033 !important;
+}
+
+html[data-theme="dark"] .home-right .home-section-header h2 {
+    color: #2b2033;
+}
+
+html[data-theme="dark"] .sidebar-btn-active {
+    background: var(--title-yellow);
+    color: #2b2033;
+}
+
+html[data-theme="dark"] wa-button[variant="primary"]:hover,
+html[data-theme="dark"] wa-button:not([variant]):hover {
+    color: var(--bg-card) !important;
+}
+
+/* ============================================================
+   НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ
+   ============================================================ */
+.settings-section-title {
+    font-family: 'Classic Console Neue', 'Comfortaa', sans-serif;
+    letter-spacing: 0.06em;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 0.65rem;
+}
+
+.settings-theme-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.settings-hint {
+    margin-top: 0.65rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
 }

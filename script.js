@@ -1,10 +1,43 @@
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const supabase = createClient( 
+const supabase = createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
 );
+
+// =============================================================
+// Тема оформления (светлая / тёмная)
+// =============================================================
+function getTheme() {
+    return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+        btn.innerHTML = theme === 'dark' ? SIDEBAR_ICONS.sun : SIDEBAR_ICONS.moon;
+        btn.title = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+    });
+}
+
+function toggleTheme() {
+    applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+}
+
+function getUiStyle() {
+    return localStorage.getItem('uiStyle') === 'olive' ? 'olive' : 'sticker';
+}
+
+function applyUiStyle(style) {
+    const link = document.getElementById('theme-style');
+    if (link) link.href = style === 'olive' ? 'style-classic.css' : 'style.css';
+    localStorage.setItem('uiStyle', style);
+}
+
+applyTheme(getTheme());
+applyUiStyle(getUiStyle());
 
 let loadingCounter = 0;
 
@@ -277,13 +310,7 @@ function updateActiveNav() {
     for (const [page, id] of Object.entries(map)) {
         const btn = document.getElementById(id);
         if (!btn) continue;
-        if (page === currentPage) {
-            btn.style.fontWeight = '700';
-            btn.style.color = 'var(--primary-dark)';
-        } else {
-            btn.style.fontWeight = '';
-            btn.style.color = '';
-        }
+        btn.classList.toggle('sidebar-btn-active', page === currentPage);
     }
 }
 
@@ -319,9 +346,28 @@ function loadPage(page) {
 }
 
 // Навигация
+const SIDEBAR_ICONS = {
+    home: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="10" y="1" width="2" height="3"/><rect x="6" y="3" width="4" height="2"/><rect x="4" y="5" width="8" height="2"/><rect x="2" y="7" width="12" height="2"/><rect x="2" y="9" width="4" height="6"/><rect x="10" y="9" width="4" height="6"/><rect x="6" y="9" width="4" height="2"/></g></svg>',
+    shopping: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="1" y="2" width="4" height="2"/><rect x="3" y="4" width="12" height="2"/><rect x="4" y="6" width="10" height="4"/><rect x="5" y="12" width="2" height="2"/><rect x="11" y="12" width="2" height="2"/></g></svg>',
+    menu: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="3" y="1" width="2" height="3"/><rect x="11" y="1" width="2" height="3"/><rect x="1" y="3" width="14" height="4"/><rect x="1" y="7" width="2" height="8"/><rect x="13" y="7" width="2" height="8"/><rect x="1" y="13" width="14" height="2"/><rect x="4" y="8" width="2" height="2"/><rect x="7" y="8" width="2" height="2"/><rect x="10" y="8" width="2" height="2"/><rect x="4" y="11" width="2" height="2"/><rect x="7" y="11" width="2" height="2"/><rect x="10" y="11" width="2" height="2"/></g></svg>',
+    recipes: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="1" y="2" width="4" height="12"/><rect x="6" y="2" width="9" height="12"/></g></svg>',
+    products: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="1" y="3" width="14" height="3"/><rect x="3" y="7" width="10" height="7"/></g></svg>',
+    lists: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="1" y="3" width="2" height="2"/><rect x="5" y="3" width="10" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="5" y="7" width="10" height="2"/><rect x="1" y="11" width="2" height="2"/><rect x="5" y="11" width="10" height="2"/></g></svg>',
+    login: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="2" y="2" width="6" height="2"/><rect x="2" y="12" width="6" height="2"/><rect x="2" y="2" width="2" height="12"/><rect x="8" y="6" width="2" height="4"/><rect x="10" y="7" width="4" height="2"/><rect x="12" y="5" width="2" height="2"/><rect x="12" y="9" width="2" height="2"/></g></svg>',
+    moon: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="6" y="2" width="5" height="2"/><rect x="4" y="4" width="3" height="2"/><rect x="3" y="6" width="2" height="5"/><rect x="5" y="11" width="3" height="2"/><rect x="8" y="12" width="4" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="12" y="5" width="1" height="2"/></g></svg>',
+    sun: '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><g fill="currentColor"><rect x="7" y="1" width="2" height="2"/><rect x="7" y="13" width="2" height="2"/><rect x="1" y="7" width="2" height="2"/><rect x="13" y="7" width="2" height="2"/><rect x="3" y="3" width="2" height="2"/><rect x="11" y="3" width="2" height="2"/><rect x="3" y="11" width="2" height="2"/><rect x="11" y="11" width="2" height="2"/><rect x="5" y="5" width="6" height="6"/></g></svg>'
+};
+
 function renderNavigation() {
     document.getElementById('app').innerHTML = `
-        <div class="app-header">
+        <aside class="app-sidebar">
+            <div class="sidebar-topbar">
+                <button id="burger-btn" class="burger-btn" aria-label="Меню">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"/>
+                    </svg>
+                </button>
+            </div>
             <div class="profile-container">
                 ${currentUser ? `
                 <button id="profile-btn" class="profile-btn">
@@ -336,26 +382,22 @@ function renderNavigation() {
                     <button id="logout-btn" class="dropdown-item logout">Выход</button>
                 </div>
                 ` : `
-                <wa-button id="login-nav-btn" variant="primary">Войти</wa-button>
+                <button id="login-nav-btn" class="sidebar-btn sidebar-login-btn" title="Войти">${SIDEBAR_ICONS.login}</button>
                 `}
             </div>
-            <button id="burger-btn" class="burger-btn" aria-label="Меню">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-            <div class="nav-buttons">
-                <wa-button id="nav-home" variant="text">Домашняя страница</wa-button>
-                <wa-button id="nav-shopping" variant="text">Список продуктов</wa-button>
-                <wa-button id="nav-menu" variant="text">Меню</wa-button>
-                <wa-button id="nav-recipes" variant="text">Рецепты</wa-button>
-                <wa-button id="nav-products" variant="text">Продукты</wa-button>
-                <wa-button id="nav-lists" variant="text">Мои списки</wa-button>
-            </div>
-        </div>
+            <button class="sidebar-btn theme-toggle-btn" title="Тёмная тема">${SIDEBAR_ICONS.moon}</button>
+            <nav class="sidebar-nav" id="sidebar-nav" aria-label="Меню">
+                <button id="nav-home" class="sidebar-btn" title="Домашняя страница">${SIDEBAR_ICONS.home}<span class="sidebar-btn-label">Главная</span></button>
+                <button id="nav-shopping" class="sidebar-btn" title="Список продуктов">${SIDEBAR_ICONS.shopping}<span class="sidebar-btn-label">Список продуктов</span></button>
+                <button id="nav-menu" class="sidebar-btn" title="Меню">${SIDEBAR_ICONS.menu}<span class="sidebar-btn-label">Меню</span></button>
+                <button id="nav-recipes" class="sidebar-btn" title="Рецепты">${SIDEBAR_ICONS.recipes}<span class="sidebar-btn-label">Рецепты</span></button>
+                <button id="nav-products" class="sidebar-btn" title="Продукты">${SIDEBAR_ICONS.products}<span class="sidebar-btn-label">Продукты</span></button>
+                <button id="nav-lists" class="sidebar-btn" title="Мои списки">${SIDEBAR_ICONS.lists}<span class="sidebar-btn-label">Мои списки</span></button>
+            </nav>
+        </aside>
         <div id="content"></div>
     `;
-    
+
     // Навигационные кнопки
     document.getElementById('nav-home').onclick = () => loadPage('home');
     document.getElementById('nav-shopping').onclick = () => loadPage('shopping');
@@ -364,22 +406,29 @@ function renderNavigation() {
     document.getElementById('nav-products').onclick = () => loadPage('products');
     document.getElementById('nav-lists').onclick = () => loadPage('lists');
 
+    // Бургер (мобильная версия)
     const burgerBtn = document.getElementById('burger-btn');
-    const navButtons = document.querySelector('.nav-buttons');
-    if (burgerBtn && navButtons) {
+    const sidebarNav = document.getElementById('sidebar-nav');
+    if (burgerBtn && sidebarNav) {
         burgerBtn.onclick = (e) => {
             e.stopPropagation();
-            navButtons.classList.toggle('nav-open');
+            sidebarNav.classList.toggle('nav-open');
         };
         document.addEventListener('click', (e) => {
-            if (!burgerBtn.contains(e.target) && !navButtons.contains(e.target)) {
-                navButtons.classList.remove('nav-open');
+            if (!burgerBtn.contains(e.target) && !sidebarNav.contains(e.target)) {
+                sidebarNav.classList.remove('nav-open');
             }
         });
-        navButtons.querySelectorAll('wa-button').forEach(btn => {
-            btn.addEventListener('click', () => navButtons.classList.remove('nav-open'));
+        sidebarNav.querySelectorAll('.sidebar-btn').forEach(btn => {
+            btn.addEventListener('click', () => sidebarNav.classList.remove('nav-open'));
         });
     }
+
+    // Переключатель темы
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+        btn.onclick = toggleTheme;
+    });
+    applyTheme(getTheme());
 
     updateActiveNav();
     
@@ -506,8 +555,8 @@ async function loadHomeRecent() {
                     return `
                         <div class="home-recent-card" data-id="${r.id}">
                             ${r.image_url
-                                ? `<img src="${escapeHtml(r.image_url)}" alt="${escapeHtml(r.name)}">`
-                                : `<div class="home-recent-placeholder">🍽</div>`
+                                ? `<div class="home-recent-image"><img src="${escapeHtml(r.image_url)}" alt="${escapeHtml(r.name)}"></div>`
+                                : `<div class="home-recent-placeholder">🍽️</div>`
                             }
                             <div class="home-recent-name">${escapeHtml(r.name)}</div>
                             ${desc ? `<div class="home-recent-desc">${escapeHtml(desc)}</div>` : ''}
@@ -706,7 +755,7 @@ function showHomeAddMenuItem(dateStr, recipes, weekDates) {
                 <label>Рецепт</label>
                 <div id="home-menu-recipe-container"></div>
                 <div style="margin-top: 0.5rem;">
-                    <button type="button" id="home-menu-filter-btn" style="background: none; border: 1px solid #ccc; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #666; cursor: pointer;">Скрыть общие рецепты</button>
+                    <button type="button" id="home-menu-filter-btn" style="background: none; border: 1px solid #d0c0ac; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #7d6b58; cursor: pointer;">Скрыть общие рецепты</button>
                 </div>
             </div>
             <div class="form-group">
@@ -833,9 +882,9 @@ async function loadProducts() {
         if (seq !== contentSeq) return;
         const isNetwork = err.message && err.message.includes('Failed to fetch');
         contentDiv.innerHTML = `
-            <div style="padding: 2rem; text-align: center; color: #dc2626;">
+            <div style="padding: 2rem; text-align: center; color: #d9534f;">
                 <p>Ошибка загрузки продуктов</p>
-                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">
+                <p style="font-size: 0.85rem; color: #a08468; margin-top: 0.5rem;">
                     ${isNetwork
                         ? 'Не удаётся подключиться к серверу. Проверьте подключение к интернету или откройте сайт через локальный сервер (Live Server, VS Code).'
                         : err.message || 'Неизвестная ошибка'}
@@ -863,9 +912,9 @@ async function loadProducts() {
                 <table class="products-table">
                     <thead>
                         <tr>
-                            <th>Название продукта</th>
-                            <th>Единица измерения</th>
-                            <th style="width: 50px;"></th>
+                            <th>Наименование продукта</th>
+                            <th><span class="th-full">Единицы измерения</span><span class="th-short">Ед. изм.</span></th>
+                            <th class="col-actions"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1206,7 +1255,7 @@ function showModal({ title, body, footer, maxWidth, onClose }) {
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">${body}</div>
-            <div class="modal-footer">${footer || ''}</div>
+            ${(footer && footer.trim()) ? `<div class="modal-footer">${footer}</div>` : ''}
         </div>
     `;
 
@@ -1262,7 +1311,35 @@ function showConfirm(message) {
 }
 
 function showSettings() {
-    alert('Настройки пока в разработке');
+    const modal = showModal({
+        title: 'Настройки',
+        maxWidth: '440px',
+        body: `
+            <div class="settings-section">
+                <div class="settings-section-title">Оформление</div>
+                <div class="settings-theme-row" id="settings-theme-row">
+                    <button type="button" class="lists-tab" data-style="sticker">Наклейки (новая)</button>
+                    <button type="button" class="lists-tab" data-style="olive">Оливковая (старая)</button>
+                </div>
+                <div class="settings-hint">Выбор сохраняется автоматически.</div>
+            </div>
+        `
+    });
+
+    const refresh = () => {
+        modal.overlay.querySelectorAll('.settings-theme-row .lists-tab').forEach(btn => {
+            btn.classList.toggle('lists-tab-active', btn.dataset.style === getUiStyle());
+        });
+    };
+
+    modal.overlay.querySelectorAll('.settings-theme-row .lists-tab').forEach(btn => {
+        btn.onclick = () => {
+            applyUiStyle(btn.dataset.style);
+            refresh();
+        };
+    });
+
+    refresh();
 }
 
 async function loadUnits() {
@@ -1289,9 +1366,9 @@ async function loadUnits() {
         console.error('Ошибка загрузки единиц:', err);
         const isNetwork = err.message && err.message.includes('Failed to fetch');
         contentDiv.innerHTML = `
-            <div style="padding: 2rem; text-align: center; color: #dc2626;">
+            <div style="padding: 2rem; text-align: center; color: #d9534f;">
                 <p>Ошибка загрузки единиц измерения</p>
-                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">
+                <p style="font-size: 0.85rem; color: #a08468; margin-top: 0.5rem;">
                     ${isNetwork
                         ? 'Не удаётся подключиться к серверу. Проверьте подключение к интернету.'
                         : err.message || 'Неизвестная ошибка'}
@@ -1318,7 +1395,7 @@ async function loadUnits() {
                     <thead>
                         <tr>
                             <th>Название</th>
-                            <th style="width: 50px;"></th>
+                            <th class="col-actions"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1482,9 +1559,9 @@ async function loadRecipes() {
         if (seq !== contentSeq) return;
         const isNetwork = err.message && err.message.includes('Failed to fetch');
         contentDiv.innerHTML = `
-            <div style="padding: 2rem; text-align: center; color: #dc2626;">
+            <div style="padding: 2rem; text-align: center; color: #d9534f;">
                 <p>Ошибка загрузки рецептов</p>
-                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">
+                <p style="font-size: 0.85rem; color: #a08468; margin-top: 0.5rem;">
                     ${isNetwork
                         ? 'Не удаётся подключиться к серверу. Проверьте подключение к интернету.'
                         : err.message || 'Неизвестная ошибка'}
@@ -1682,7 +1759,6 @@ async function showRecipeDetail(recipe, readOnly = false) {
             <div class="detail-hint">${readOnly ? 'Общий рецепт — просмотр без редактирования' : 'Нажмите на поле, чтобы изменить его'}</div>
         `,
         footer: readOnly ? `
-            <wa-button id="cancel-detail-btn" variant="text">Закрыть</wa-button>
         ` : `
             <div id="recipe-detail-error" style="color: var(--text-danger); font-size: 0.85rem; margin-bottom: 0.5rem; display: none; width: 100%;"></div>
             <wa-button id="cancel-detail-btn" variant="text">Закрыть</wa-button>
@@ -1692,7 +1768,8 @@ async function showRecipeDetail(recipe, readOnly = false) {
 
     const ingredientsListEl = overlay.querySelector('#recipe-detail-ingredients');
 
-    overlay.querySelector('#cancel-detail-btn').onclick = () => overlay.remove();
+    const cancelDetailBtn = overlay.querySelector('#cancel-detail-btn');
+    if (cancelDetailBtn) cancelDetailBtn.onclick = () => overlay.remove();
 
     if (!readOnly) {
         function addDetailIngredientRow(productId = '', quant = '') {
@@ -1809,7 +1886,8 @@ async function showRecipeDetail(recipe, readOnly = false) {
         function updateDetailFooter() {
             const editing = !!overlay.querySelector('.detail-field.editing');
             saveBtn.style.display = editing ? '' : 'none';
-            cancelBtn.textContent = editing ? 'Отменить изменения' : 'Закрыть';
+            cancelBtn.style.display = editing ? '' : 'none';
+            cancelBtn.textContent = 'Отменить изменения';
         }
 
         overlay.querySelectorAll('.detail-field-editable').forEach(field => {
@@ -1994,6 +2072,92 @@ async function showAddRecipeForm() {
     focusFieldLater('#recipe-name', overlay);
 }
 
+function openPeriodPicker(startISO, endISO, onApply) {
+    let selStart = startISO || null;
+    let selEnd = endISO || null;
+    const baseISO = selStart || formatDateISO(new Date());
+    let viewYear = parseInt(baseISO.slice(0, 4), 10);
+    let viewMonth = parseInt(baseISO.slice(5, 7), 10) - 1;
+
+    const MONTHS_NOM = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+    const { overlay, close } = showModal({
+        title: 'Выбор периода',
+        body: `
+            <div class="period-picker">
+                <div class="pp-head">
+                    <button type="button" id="pp-prev" class="pp-nav-btn" aria-label="Предыдущий месяц">&#8249;</button>
+                    <span id="pp-month" class="pp-month"></span>
+                    <button type="button" id="pp-next" class="pp-nav-btn" aria-label="Следующий месяц">&#8250;</button>
+                </div>
+                <div class="pp-weekdays">${WEEKDAYS_SHORT.map(d => `<span>${d}</span>`).join('')}</div>
+                <div class="pp-grid" id="pp-grid"></div>
+                <div class="pp-summary" id="pp-summary"></div>
+            </div>
+        `,
+        footer: `
+            <wa-button id="modal-cancel-btn" variant="text">Отмена</wa-button>
+            <wa-button id="pp-apply" variant="primary">Применить</wa-button>
+        `
+    });
+
+    function render() {
+        overlay.querySelector('#pp-month').textContent = `${MONTHS_NOM[viewMonth]} ${viewYear}`;
+        const first = new Date(viewYear, viewMonth, 1);
+        const startDow = (first.getDay() + 6) % 7;
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        let html = '';
+        for (let i = 0; i < startDow; i++) html += '<span class="pp-day pp-empty"></span>';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            let cls = 'pp-day';
+            if (iso === selStart || iso === selEnd) cls += ' pp-edge';
+            else if (selStart && selEnd && iso > selStart && iso < selEnd) cls += ' pp-in';
+            html += `<button type="button" class="${cls}" data-date="${iso}">${d}</button>`;
+        }
+        overlay.querySelector('#pp-grid').innerHTML = html;
+        overlay.querySelectorAll('.pp-day[data-date]').forEach(btn => {
+            btn.onclick = () => {
+                const iso = btn.getAttribute('data-date');
+                if (!selStart || selEnd) {
+                    selStart = iso;
+                    selEnd = null;
+                } else if (iso < selStart) {
+                    selStart = iso;
+                } else {
+                    selEnd = iso;
+                }
+                render();
+            };
+        });
+        overlay.querySelector('#pp-summary').textContent = (selStart && selEnd)
+            ? `С ${formatDateDisplay(selStart)} по ${formatDateDisplay(selEnd)}`
+            : selStart
+                ? `Начало: ${formatDateDisplay(selStart)} — выберите конец`
+                : 'Выберите начало периода';
+    }
+
+    overlay.querySelector('#pp-prev').onclick = () => {
+        viewMonth--;
+        if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+        render();
+    };
+    overlay.querySelector('#pp-next').onclick = () => {
+        viewMonth++;
+        if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+        render();
+    };
+    overlay.querySelector('#pp-apply').onclick = () => {
+        if (!selStart) return;
+        const s = selStart;
+        const e = selEnd || selStart;
+        close();
+        onApply(s, e);
+    };
+
+    render();
+}
+
 function getMenuPeriod() {
     const saved = localStorage.getItem('menuPeriod');
     if (saved) {
@@ -2111,31 +2275,26 @@ async function loadMenuPlanner() {
                 <h2>Меню</h2>
             </div>
             <div class="menu-period-bar">
-                <div class="menu-period-dates">
-                    <label>С:</label>
-                    <input type="date" id="menu-date-start" class="input-field menu-date-input" value="${period.start}">
-                    <label>По:</label>
-                    <input type="date" id="menu-date-end" class="input-field menu-date-input" value="${period.end}">
-                    <wa-button id="menu-apply-period" variant="primary">Применить</wa-button>
-                </div>
+                <button type="button" id="menu-period-btn" class="period-btn"></button>
             </div>
             <div id="menu-calendar"></div>
         </div>
     `;
 
-    document.getElementById('menu-apply-period').onclick = () => {
-        const start = document.getElementById('menu-date-start').value;
-        const end = document.getElementById('menu-date-end').value;
-        if (!start || !end) {
-            alert('Выберите обе даты');
-            return;
-        }
-        if (start > end) {
-            alert('Дата начала не может быть позже даты окончания');
-            return;
-        }
-        saveMenuPeriod(start, end);
-        loadMenuCalendar(start, end);
+    const menuPeriodBtn = document.getElementById('menu-period-btn');
+    const refreshMenuPeriodLabel = () => {
+        const p = getMenuPeriod();
+        menuPeriodBtn.textContent = `С ${formatDateDisplay(p.start)} по ${formatDateDisplay(p.end)}`;
+    };
+    refreshMenuPeriodLabel();
+
+    menuPeriodBtn.onclick = () => {
+        const p = getMenuPeriod();
+        openPeriodPicker(p.start, p.end, (start, end) => {
+            saveMenuPeriod(start, end);
+            refreshMenuPeriodLabel();
+            loadMenuCalendar(start, end);
+        });
     };
 
     loadMenuCalendar(period.start, period.end);
@@ -2192,7 +2351,7 @@ async function loadMenuCalendar(startStr, endStr) {
         calendarDiv.innerHTML = `
             <div style="padding: 2rem; text-align: center; color: var(--text-danger);">
                 <p>Ошибка загрузки меню</p>
-                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">${err.message || 'Неизвестная ошибка'}</p>
+                <p style="font-size: 0.85rem; color: #a08468; margin-top: 0.5rem;">${err.message || 'Неизвестная ошибка'}</p>
                 <wa-button id="menu-retry-btn" variant="primary" style="margin-top: 1rem;">Повторить</wa-button>
             </div>
         `;
@@ -2206,7 +2365,9 @@ async function loadMenuCalendar(startStr, endStr) {
         menuByDate[item.date].push(item);
     }
 
-    let html = '<div class="menu-grid">';
+    const menuCols = dates.length <= 7 ? Math.max(dates.length, 2) : 7;
+    const menuGridCls = dates.length <= 7 ? 'menu-grid menu-grid-week' : 'menu-grid menu-grid-month';
+    let html = `<div class="${menuGridCls}" style="--menu-cols: ${menuCols}">`;
     for (const dateStr of dates) {
         const dow = getDayOfWeek(dateStr);
         const isToday = dateStr === formatDateISO(new Date());
@@ -2330,7 +2491,7 @@ function showAddMenuItemForm(dateStr, recipes) {
                 <label>Рецепт</label>
                 <div id="menu-recipe-select-container"></div>
                 <div style="margin-top: 0.5rem;">
-                    <button type="button" id="menu-filter-btn" style="background: none; border: 1px solid #ccc; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #666; cursor: pointer;">Скрыть общие рецепты</button>
+                    <button type="button" id="menu-filter-btn" style="background: none; border: 1px solid #d0c0ac; border-radius: 8px; padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #7d6b58; cursor: pointer;">Скрыть общие рецепты</button>
                 </div>
             </div>
             <div class="form-group">
@@ -2442,33 +2603,31 @@ function loadShoppingList() {
                 <wa-button id="shop-make-list-btn" variant="primary">Создать список для отправки</wa-button>
             </div>
             <div class="menu-period-bar">
-                <div class="menu-period-dates">
-                    <label>С:</label>
-                    <input type="date" id="shop-date-start" class="input-field menu-date-input" value="${period.start}">
-                    <label>По:</label>
-                    <input type="date" id="shop-date-end" class="input-field menu-date-input" value="${period.end}">
-                    <wa-button id="shop-apply-period" variant="primary">Применить</wa-button>
-                </div>
+                <button type="button" id="shop-period-btn" class="period-btn"></button>
             </div>
             <div id="shop-list"></div>
         </div>
     `;
 
-    document.getElementById('shop-make-list-btn').onclick = () => {
-        const start = document.getElementById('shop-date-start').value;
-        const end = document.getElementById('shop-date-end').value;
-        if (!start || !end) { alert('Укажите даты начала и окончания периода'); return; }
-        if (start > end) { alert('Дата начала должна быть раньше даты окончания'); return; }
-        createListFromMenu(start, end);
+    const shopPeriodBtn = document.getElementById('shop-period-btn');
+    const refreshShopPeriodLabel = () => {
+        const p = getShoppingPeriod();
+        shopPeriodBtn.textContent = `С ${formatDateDisplay(p.start)} по ${formatDateDisplay(p.end)}`;
+    };
+    refreshShopPeriodLabel();
+
+    shopPeriodBtn.onclick = () => {
+        const p = getShoppingPeriod();
+        openPeriodPicker(p.start, p.end, (start, end) => {
+            saveShoppingPeriod(start, end);
+            refreshShopPeriodLabel();
+            loadShopItems(start, end);
+        });
     };
 
-    document.getElementById('shop-apply-period').onclick = () => {
-        const start = document.getElementById('shop-date-start').value;
-        const end = document.getElementById('shop-date-end').value;
-        if (!start || !end) { alert('Выберите обе даты'); return; }
-        if (start > end) { alert('Дата начала не может быть позже даты окончания'); return; }
-        saveShoppingPeriod(start, end);
-        loadShopItems(start, end);
+    document.getElementById('shop-make-list-btn').onclick = () => {
+        const p = getShoppingPeriod();
+        createListFromMenu(p.start, p.end);
     };
 
     loadShopItems(period.start, period.end);
@@ -2489,12 +2648,12 @@ async function loadShopItems(startStr, endStr) {
 
         if (items.length === 0) {
             listDiv.innerHTML = currentUser ? `
-                <div style="text-align: center; padding: 3rem; color: #888;">
+                <div style="text-align: center; padding: 3rem; color: #a08468;">
                     <p>Нет блюд в меню за выбранный период.</p>
                     <p style="font-size: 0.85rem; margin-top: 0.5rem;">Добавьте рецепты в меню, чтобы сформировать список покупок.</p>
                 </div>
             ` : `
-                <div style="text-align: center; padding: 3rem; color: #888;">
+                <div style="text-align: center; padding: 3rem; color: #a08468;">
                     <p>Войдите в аккаунт, чтобы планировать меню и формировать список покупок.</p>
                 </div>
             `;
@@ -2507,7 +2666,7 @@ async function loadShopItems(startStr, endStr) {
         listDiv.innerHTML = `
             <div style="padding: 2rem; text-align: center; color: var(--text-danger);">
                 <p>Ошибка загрузки</p>
-                <p style="font-size: 0.85rem; color: #888; margin-top: 0.5rem;">${err.message || 'Неизвестная ошибка'}</p>
+                <p style="font-size: 0.85rem; color: #a08468; margin-top: 0.5rem;">${err.message || 'Неизвестная ошибка'}</p>
                 <wa-button id="shop-retry-btn" variant="primary" style="margin-top: 1rem;">Повторить</wa-button>
             </div>
         `;
@@ -2586,7 +2745,7 @@ function renderShopList(container, items) {
 
         if (items.length === 0) {
             html = `
-                <div style="text-align: center; padding: 3rem; color: #888;">
+                <div style="text-align: center; padding: 3rem; color: #a08468;">
                     <p>Список покупок пуст.</p>
                 </div>
             `;
@@ -3114,6 +3273,8 @@ async function loadListDetail(list, opts = {}) {
                 <div class="list-panel list-panel-recipes">
                     <div class="list-panel-header">
                         <h3>Рецепты</h3>
+                    </div>
+                    <div class="list-panel-actions">
                         ${canEdit ? '<wa-button id="add-list-recipe-btn" variant="primary" size="small">+ Добавить рецепт</wa-button>' : ''}
                     </div>
                     <div id="list-recipes-body"></div>
@@ -3121,11 +3282,11 @@ async function loadListDetail(list, opts = {}) {
                 <div class="list-panel list-panel-items">
                     <div class="list-panel-header">
                         <h3>Продукты</h3>
+                    </div>
+                    <div class="list-panel-actions">
                         ${canEdit ? `
-                            <div class="list-panel-actions">
-                                <wa-button id="add-list-item-btn" variant="primary" size="small">+ Продукт</wa-button>
-                                <wa-button id="reset-checked-btn" variant="text" size="small">Сбросить отметки</wa-button>
-                            </div>
+                            <wa-button id="add-list-item-btn" variant="primary" size="small">+ Продукт</wa-button>
+                            <wa-button id="reset-checked-btn" variant="text" size="small">Сбросить отметки</wa-button>
                         ` : ''}
                     </div>
                     <div id="list-items-body"></div>
@@ -3174,10 +3335,12 @@ async function loadListDetail(list, opts = {}) {
 
     const resetBtn = document.getElementById('reset-checked-btn');
     if (resetBtn) resetBtn.onclick = async () => {
+        const confirmed = await showConfirm('Сбросить отметки у всех отмеченных продуктов?');
+        if (!confirmed) return;
         showLoading('Сохранение...');
         const { error } = await supabase.from('list_items').update({ is_checked: false }).eq('list_id', list.id).eq('is_checked', true);
         hideLoading();
-        if (error) { alert('Не удалось сбросить: ' + error.message); return; }
+        if (error) { alert('Не удалось сохранить: ' + error.message); return; }
         refreshListPanels(list.id);
     };
 
